@@ -924,15 +924,19 @@ static void rtsp_parse_transport(AVFormatContext *s,
         if (*p == '\0')
             break;
 
+        /* start with  reply->nb_transports = 0; */
+        /* first transport to read */
         th = &reply->transports[reply->nb_transports];
 
+        printf("Message string %s \n", p);
         get_word_sep(transport_protocol, sizeof(transport_protocol),
                      "/", &p);
+        /* is RTP ?*/
         if (!av_strcasecmp (transport_protocol, "rtp")) {
             get_word_sep(profile, sizeof(profile), "/;,", &p);
             lower_transport[0] = '\0';
             /* rtp/avp/<protocol> */
-            if (*p == '/') {
+            if (*p == '/') { /* if rtp/; is rtp/avp */
                 get_word_sep(lower_transport, sizeof(lower_transport),
                              ";,", &p);
             }
@@ -953,10 +957,19 @@ static void rtsp_parse_transport(AVFormatContext *s,
             }
             th->transport = RTSP_TRANSPORT_RAW;
         }
-        if (!av_strcasecmp(lower_transport, "TCP"))
+
+        printf("RTSPTransportField %d \n",  th->transport); /* RTSPTransportField */
+
+        /* making ffmpeg forgiving when TCP is omitted */
+        /* assuming it was missing it but ... better compare with original request
+        to see it is the same lower_transport */
+        if (!av_strcasecmp(lower_transport, "TCP") || !av_strcasecmp(lower_transport, ""))
             th->lower_transport = RTSP_LOWER_TRANSPORT_TCP;
         else
             th->lower_transport = RTSP_LOWER_TRANSPORT_UDP;
+
+        printf("lower_transport parsed string %s\n", lower_transport);
+        printf("RTSPLowerTransport %d \n", th->lower_transport);
 
         if (*p == ';')
             p++;
@@ -1551,16 +1564,17 @@ int ff_rtsp_make_setup_request(AVFormatContext *s, const char *host, int port,
                  s->streams[rtsp_st->stream_index]->codecpar->codec_type ==
                     AVMEDIA_TYPE_DATA))
                 continue;
+            /* forming transport string */
             snprintf(transport, sizeof(transport) - 1,
-                     "%s/TCP;", trans_pref);
-            if (rt->transport != RTSP_TRANSPORT_RDT)
+                     "%s/TCP;", trans_pref); /* RTP/AVP/TCP; */
+            if (rt->transport != RTSP_TRANSPORT_RDT) /* RTP/AVP/TCP;unicast; */
                 av_strlcat(transport, "unicast;", sizeof(transport));
             av_strlcatf(transport, sizeof(transport),
                         "interleaved=%d-%d",
                         interleave, interleave + 1);
+                        /* RTP/AVP/TCP;unicast;interleaved=2-3 */
             interleave += 2;
         }
-
         else if (lower_transport == RTSP_LOWER_TRANSPORT_UDP_MULTICAST) {
             snprintf(transport, sizeof(transport) - 1,
                      "%s/UDP;multicast", trans_pref);
@@ -1570,6 +1584,7 @@ int ff_rtsp_make_setup_request(AVFormatContext *s, const char *host, int port,
         } else if (rt->server_type == RTSP_SERVER_REAL ||
                    rt->server_type == RTSP_SERVER_WMS)
             av_strlcat(transport, ";mode=play", sizeof(transport));
+        /* command line Transport: RTP/AVP/TCP;unicast;interleaved=2-3 */
         snprintf(cmd, sizeof(cmd),
                  "Transport: %s\r\n",
                  transport);
@@ -1584,6 +1599,7 @@ int ff_rtsp_make_setup_request(AVFormatContext *s, const char *host, int port,
                         "RealChallenge2: %s, sd=%s\r\n",
                         rt->session_id, real_res, real_csum);
         }
+        /* send SETUP command */
         ff_rtsp_send_cmd(s, "SETUP", rtsp_st->control_url, cmd, reply, NULL);
         if (reply->status_code == 461 /* Unsupported protocol */ && i == 0) {
             err = 1;
@@ -1615,8 +1631,13 @@ int ff_rtsp_make_setup_request(AVFormatContext *s, const char *host, int port,
             rt->transport = reply->transports[0].transport;
         }
 
+        /* Andre */
         /* Fail if the server responded with another lower transport mode
          * than what we requested. */
+         printf("reply->transports[0].lower_transport is %d \n", reply->transports[0].lower_transport);
+         printf("lower_transport is %d \n", lower_transport);
+         /*reply->transports[0].lower_transport = RTSP_LOWER_TRANSPORT_TCP;*/
+
         if (reply->transports[0].lower_transport != lower_transport) {
             av_log(s, AV_LOG_ERROR, "Nonmatching transport in server reply\n");
             err = AVERROR_INVALIDDATA;
@@ -1956,6 +1977,7 @@ redirect:
     if (err)
         goto fail;
 
+    /* make setup request while err > 0 */
     do {
         int lower_transport = ff_log2_tab[lower_transport_mask &
                                   ~(lower_transport_mask - 1)];
@@ -1964,11 +1986,13 @@ redirect:
                 && (rt->rtsp_flags & RTSP_FLAG_PREFER_TCP))
             lower_transport = RTSP_LOWER_TRANSPORT_TCP;
 
+        /* make a setup request using de desired lower_transport*/
         err = ff_rtsp_make_setup_request(s, host, port, lower_transport,
                                  rt->server_type == RTSP_SERVER_REAL ?
                                      real_challenge : NULL);
+
         if (err < 0)
-            goto fail;
+            goto fail;   /* something that says cannot stream this */
         lower_transport_mask &= ~(1 << lower_transport);
         if (lower_transport_mask == 0 && err == 1) {
             err = AVERROR(EPROTONOSUPPORT);
