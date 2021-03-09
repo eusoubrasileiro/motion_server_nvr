@@ -1,0 +1,36 @@
+openRTSP -n -D 1 -c -B 10000000 -b 10000000 -q -Q -F cam_eight -d 60 -P 30 -t -u admin gig1684A rtsp://192.168.0.103:554/onvif11
+
+
+##openRTSP
+
+####SETUP Request 
+
+Sending request: SETUP rtsp://192.168.0.103:554/onvif1/track2 RTSP/1.0
+CSeq: 6
+Authorization: Digest username="admin", realm="HIipCamera", nonce="ddd21dbd0620b6fb4b1f9bcbb06340a0", uri="rtsp://192.168.0.103:554/onvif1", response="91d9c611aa004eeb1390b3fbb9373648"
+User-Agent: ./openRTSP (LIVE555 Streaming Media v2021.02.11)
+Transport: RTP/AVP/TCP;unicast;interleaved=2-3
+Session: 3a4d2e6d
+
+#####ANSWER
+
+Received a complete SETUP response:
+RTSP/1.0 200 OK
+CSeq: 6
+Transport: RTP/AVP;unicast;destination=192.168.0.100;source=192.168.0.103;interleaved=2-3
+Session: 3a4d2e6d;timeout=60
+
+##DESCRIBE Request   (ffmpeg)
+
+
+DESCRIBE rtsp://192.168.0.103:554/onvif1 RTSP/1.0
+Accept: application/sdp
+CSeq: 2
+User-Agent: Lavf58.67.100
+
+response
+by Yoosee camera
+
+Transport: RTP/AVP;unicast;destination=192.168.0.100;source=192.168.0.103;interleaved=0-1
+Session: 37287775;timeout=60
+
