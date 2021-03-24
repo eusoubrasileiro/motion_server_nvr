@@ -1,1 +1,0 @@
-Running export LDFLAGS=" -llog" before /.configure android loggin linking problems
