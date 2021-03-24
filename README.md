@@ -1,4 +1,6 @@
-### Network Video Recorder System Inside Termux Using Old Android Smartphone
+### Network Video Recorder System Inside Linux Deploy Debian Using Old Android Smartphone
+
+- Using chroot Debian in Android 8 Lenovo K5 vibe
 
 - Uses [Motion Project](https://github.com/Motion-Project/motion)
 
