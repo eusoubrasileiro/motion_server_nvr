@@ -1,3 +1,5 @@
+#TODO
+# fix to copy to debian directories
 cp ~/bin/* ~/../usr/bin
 mkdir ~/../usr/include/libavcodec
 mkdir ~/../usr/include/libavdevice
