@@ -5,7 +5,7 @@ Learned about Android
 **Danger**: don't do this if your ssh-server/mosh-server is not running properly in Termux/LinuxDeploy. 
 
 With root run `stop`. It will kill all services on Android/Zygote. No screen, nothing will be running.   
-Type again `run` to start all services again.
+Type again `run` to start all services again. Learned from [ChrootOnAndroid][3].
 
 
 ### Sometimes Android will kill your process (reclaim memory). What to do:
@@ -26,6 +26,7 @@ Type again `run` to start all services again.
 
 [1]: https://android.stackexchange.com/questions/183401/is-there-a-way-with-root-to-prevent-android-task-killer-from-killing-certain
 [2]: https://askubuntu.com/questions/60672/how-do-i-use-oom-score-adj
+[3]: https://wiki.debian.org/ChrootOnAndroid
 
 
 ### Remounting file system for writing with su/root
