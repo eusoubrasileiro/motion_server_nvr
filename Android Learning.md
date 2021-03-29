@@ -6,7 +6,8 @@ Learned about Android
 
 With root run `stop`. It will kill all services on Android/Zygote. No screen, nothing will be running.   
 Type again `run` to start all services again. Learned from [ChrootOnAndroid][3].
-
+Mostly will release a lot of memory and threads. Downside is that if your wifi restarts android will not reconnect. 
+So I personally think is bettern to tweak the oom (out-of-memory) killer bellow.
 
 ### Sometimes Android will kill your process (reclaim memory). What to do:
 
