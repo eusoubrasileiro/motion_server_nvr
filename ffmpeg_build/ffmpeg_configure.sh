@@ -20,8 +20,9 @@ cd FFmpeg-release-4.3
 --disable-txtpages   --disable-sndio  --disable-schannel --disable-securetransport  --disable-xlib  --disable-cuda  \
 --disable-cuvid  --disable-nvenc   --disable-vaapi  --disable-vdpau  --disable-videotoolbox  --disable-audiotoolbox  \
 --disable-appkit  --disable-alsa  --disable-cuda --disable-cuvid  --disable-nvenc  \
---disable-vaapi --disable-vdpau --enable-shared 
+--disable-vaapi --disable-vdpau --enable-shared --enable-v4l2-m2m 
 # --prefix=/usr/local is the default and binaries on /usr/local/bin
+# v4l2-m2m provides some hardware accelerated decoders/enconder
 
 make -j8
 sudo make install 
