@@ -16,11 +16,12 @@ cd FFmpeg-release-4.3
 # based on ffmpeg-kit android.sh
 ./configure --arch=arm64  --target-os=linux --enable-pic  --enable-optimizations  --enable-swscale \
 --disable-outdevs    --disable-indevs  --disable-openssl  --disable-xmm-clobber-test  --disable-neon-clobber-test \
---disable-programs  --disable-postproc  --disable-doc  --disable-htmlpages  --disable-manpages  --disable-podpages \
+--disable-ffplay  --disable-postproc  --disable-doc  --disable-htmlpages  --disable-manpages  --disable-podpages \
 --disable-txtpages   --disable-sndio  --disable-schannel --disable-securetransport  --disable-xlib  --disable-cuda  \
 --disable-cuvid  --disable-nvenc   --disable-vaapi  --disable-vdpau  --disable-videotoolbox  --disable-audiotoolbox  \
 --disable-appkit  --disable-alsa  --disable-cuda --disable-cuvid  --disable-nvenc  \
---disable-vaapi --disable-vdpau --enable-shared
+--disable-vaapi --disable-vdpau --enable-shared 
+# --prefix=/usr/local is the default and binaries on /usr/local/bin
 
 make -j8
 sudo make install 
