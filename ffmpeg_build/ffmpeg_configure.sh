@@ -1,3 +1,27 @@
-# debian linux deploy
+# debian linux deploy 
 
-PATH="$HOME/bin:$PATH" PKG_CONFIG_PATH="$HOME/ffmpeg_build/lib/pkgconfig" ./configure   --prefix="$HOME/ffmpeg_build"   --pkg-config-flags="--static"   --era-cflags="-I$HOME/ffmpeg_build/include"   --extra-ldflags="-L$HOME/ffmpeg_build/lib"   --extra-libs="-lpthread -lm"   --ld="g++"   --bindir="$HOME/bin"   --enable-gpl   --enable-gnutls   --enable-libfdk-aac   --enable-libfreetype   --enable-libvorbis   --enable-libvpx   --enable-libx264   --enable-libx265   --enable-nonfree --enable-cross-compile --disable-indevs --disable-outdevs --disable-symver --enable-neon --enable-shared --disable-static
+sudo apt-get update -qq && sudo apt-get -y install \
+  autoconf \
+  automake \
+  build-essential \
+  pkg-config \
+  yasm  \
+  wget \
+  unzip
+sudo wget https://github.com/eusoubrasileiro/FFmpeg/archive/refs/heads/release/4.3.zip
+unzip 4.3.zip
+cd FFmpeg-release-4.3
+#export CFLAGS='-g -O3 -ftree-vectorize -mcpu=cortex-a53 -march=armv8-a+crypto+crc+simd' 
+
+# based on ffmpeg-kit android.sh
+./configure --arch=arm64  --target-os=linux --enable-pic  --enable-optimizations  --enable-swscale \
+--disable-outdevs    --disable-indevs  --disable-openssl  --disable-xmm-clobber-test  --disable-neon-clobber-test \
+--disable-programs  --disable-postproc  --disable-doc  --disable-htmlpages  --disable-manpages  --disable-podpages \
+--disable-txtpages   --disable-sndio  --disable-schannel --disable-securetransport  --disable-xlib  --disable-cuda  \
+--disable-cuvid  --disable-nvenc   --disable-vaapi  --disable-vdpau  --disable-videotoolbox  --disable-audiotoolbox  \
+--disable-appkit  --disable-alsa  --disable-cuda --disable-cuvid  --disable-nvenc  \
+--disable-vaapi --disable-vdpau --enable-shared
+
+make -j8
+sudo make install 
+
