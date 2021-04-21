@@ -1,18 +1,26 @@
+#!/bin/bash
 # debian linux deploy 
 
-sudo apt-get update -qq && sudo apt-get -y install \
+sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -yfq --no-install-recommends \
   autoconf \
   automake \
   build-essential \
   pkg-config \
-  yasm  \  
+  yasm  \
   wget \
   unzip \
-  libv4l-dev libv4l-0 
+  libv4l-dev \
+  libv4l-0
 # libv4l-dev libv4l-0  for video4linux decoders/encoders
-  
-sudo wget https://github.com/eusoubrasileiro/FFmpeg/archive/refs/heads/release/4.3.zip
-unzip 4.3.zip
+
+if [ ! -f "ffmpeg-4.3.zip" ]; then # only if not downloaded yet
+    wget -O ffmpeg-4.3.zip https://github.com/eusoubrasileiro/FFmpeg/archive/refs/heads/release/4.3.zip
+fi
+if [ ! -d "FFmpeg-release-4.3" ]; then # only if not unziped yet
+   unzip ffmpeg-4.3.zip
+fi
+    
+
 cd FFmpeg-release-4.3
 #export CFLAGS='-g -O3 -ftree-vectorize -mcpu=cortex-a53 -march=armv8-a+crypto+crc+simd' 
 
@@ -23,10 +31,10 @@ cd FFmpeg-release-4.3
 --disable-txtpages   --disable-sndio  --disable-schannel --disable-securetransport  --disable-xlib  --disable-cuda  \
 --disable-cuvid  --disable-nvenc   --disable-vaapi  --disable-vdpau  --disable-videotoolbox  --disable-audiotoolbox  \
 --disable-appkit  --disable-alsa  --disable-cuda --disable-cuvid  --disable-nvenc  \
---disable-vaapi --disable-vdpau --enable-shared --enable-v4l2-m2m 
+--disable-vaapi --disable-vdpau --enable-shared --enable-v4l2-m2m --prefix=/usr
 # --prefix=/usr/local is the default and binaries on /usr/local/bin
+# but better user /usr to avoid LD_LIBRARY_PATH set 
 # v4l2-m2m provides some hardware accelerated decoders/enconder
 
 make -j8
 sudo make install 
-

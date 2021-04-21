@@ -142,7 +142,7 @@ def kill_python_nvr():
 def start_motion():
     print('motion nvr :: starting motion')
     # run inside the configuration folder to guarantee those configurations are used
-    os.system('cd ~/.motion && motiond -l /home/android/.motion/motiond_log.txt &')
+    os.system('cd ~/android_ldeploy_nvr/motion_config && motiond -l ~/motiond_log.txt &')
 
 def main():
     print('motion nvr :: starting system :: pid :', os.getpid())
