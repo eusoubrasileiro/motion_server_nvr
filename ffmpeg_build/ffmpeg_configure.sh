@@ -5,9 +5,12 @@ sudo apt-get update -qq && sudo apt-get -y install \
   automake \
   build-essential \
   pkg-config \
-  yasm  \
+  yasm  \  
   wget \
-  unzip
+  unzip \
+  libv4l-dev libv4l-0 
+# libv4l-dev libv4l-0  for video4linux decoders/encoders
+  
 sudo wget https://github.com/eusoubrasileiro/FFmpeg/archive/refs/heads/release/4.3.zip
 unzip 4.3.zip
 cd FFmpeg-release-4.3
