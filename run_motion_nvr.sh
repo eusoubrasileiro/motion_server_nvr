@@ -1,2 +1,2 @@
 #!/bin/bash
-python3 ~/.motion/motion_nvr.py &
+python3 ~/android_ldeploy_nvr/motion_config/motion_nvr.py &
