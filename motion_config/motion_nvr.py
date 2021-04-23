@@ -3,16 +3,28 @@ import os
 from pathlib import Path
 import socket
 import sys
+import subprocess
+from concurrent.futures import ThreadPoolExecutor
 
 __sd_card_path__ = '/mnt/media_rw/2152-10F4'
 __motion_pictures_path__ = os.path.join(__sd_card_path__,'media/motion_data/pictures')
 __motion_movies_path__ = os.path.join(__sd_card_path__,'media/motion_data/movies')
+__motion_log_file__ = os.path.join('/home/android','motiond_log.txt')
+
 
 cams = {'ipcam_frontwall' : {'ip' : '192.168.0.146', 'mac' : 'A0:9F:10:00:93:C6'}, 
   'ipcam_garage' :  { 'ip' : '192.168.0.102', 'mac' : 'A0:9F:10:01:30:D2'},
   'ipcam_kitchen' : {'ip' : '192.168.0.100', 'mac' : 'A0:9F:10:01:30:D8'}}
 
-
+def print_motion_logs(proc_motion):
+    def print_output(file):
+        for line in iter(file.readline, ''):
+            print(line, end='') # printing to stdout
+        file.close()
+    with ThreadPoolExecutor(2) as pool:
+        pool.submit(print_output, proc_motion.stdout)
+        pool.submit(print_output, proc_motion.stderr)
+          
 def progressbar(it, prefix="", size=60, file=sys.stdout):
     count = len(it)
     def show(j):
@@ -139,10 +151,14 @@ def kill_motion():
 def kill_python_nvr():
     kill_byname('motion_nvr.py')
 
-def start_motion():
-    print('motion nvr :: starting motion')
-    # run inside the configuration folder to guarantee those configurations are used
-    os.system('cd ~/android_ldeploy_nvr/motion_config && motiond -l ~/motiond_log.txt &')
+def start_motion(): 
+    print('motion nvr :: starting motion')   
+    # run inside the configuration folder to guarantee those configurations are used    
+    # &> stdout and stderr to file
+    return subprocess.Popen('cd ~/android_ldeploy_nvr/motion_config && motiond -d 6', stdout=subprocess.PIPE, 
+          stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+    # the bellow doesnt work to merge all logs in only one file
+    # os.system('cd ~/android_ldeploy_nvr/motion_config && motiond -l ~/motiond_log.txt  &> ~/motiond_log.txt &')
 
 def main():
     print('motion nvr :: starting system :: pid :', os.getpid())
@@ -150,37 +166,38 @@ def main():
     kill_motion()
     check_clean_sdcard()    # should also clean log-file once in a while to not make it huge
     update_hosts()
-    start_motion()
+    proc_motion = start_motion()
     detection=True    
-    while True: 
+    print_motion_logs(proc_motion)     # 2 threads running on background printing motion log messages
+    while True:    
         if not is_running_motion(): # check if motion is running 
                 # time to re-start motion
-                start_motion()
+                proc_motion = start_motion()
                 detection=True
         else: # running
             if not detection:
                 if datetime.datetime.now().time() > datetime.time(hour=20) or datetime.datetime.now().time() < datetime.time(hour=6):
                     try: # start motion detection
                         for i in range(1,4):
-                            output = subprocess.check_output(['curl', 
+                            output = subprocess.check_output(['curl', '-s',
                                 'http://localhost:8088/'+str(i)+'/detection/start']).decode()
-                    except:
-                      continue # try again later
+                    except Exception as e:
+                        print("motion nvr :: could not set detection parameter exception: ", e)
+                        continue # try again later
                     detection=True
             else: # detection running
                 if datetime.datetime.now().time() < datetime.time(hour=20) and datetime.datetime.now().time() > datetime.time(hour=6):
                     try: # pause motion detection
                         for i in range(1,4):
-                            output = subprocess.check_output(['curl', 
+                            output = subprocess.check_output(['curl', '-s',
                                 'http://localhost:8088/'+str(i)+'/detection/pause']).decode()
-                    except:
+                    except Exception as e:
+                        print("motion nvr :: could not set detection parameter exception: ", e)
                         continue # try again later
                     detection=False  
         time.sleep(15*60) # every 15 minutes only
         check_clean_sdcard()    # should also clean log-file once in a while to not make it huge
-        update_hosts()
-    
-
+        update_hosts()      
+            
 if __name__ == "__main__":
     main()
-    
