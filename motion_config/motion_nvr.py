@@ -136,26 +136,37 @@ def check_clean_sdcard():
         # remove 50% of oldest movies
         clean_folder_old(__motion_movies_path__, 50)
 
-
-def is_running_byname(name_contains):
+def running_pids(sudo=False):
     """return list of pid's of running processes or [] empty if not running"""
-    output = subprocess.check_output(['sudo', 'ps', '-A', 'all']).decode()
-    pss = output.split('\n')[1:-3]
+    cmd = ['ps', '-eo', 'pid']
+    if sudo:
+      cmd = ['sudo'] + cmd      
+    pids = subprocess.check_output(cmd).decode().split('\n')[1:-2]
+    return [ int(pid) for pid in pids ]
+
+def is_running_byname(name_contains, sudo=False):
+    """return list of pid's of running processes or [] empty if not running"""
+    # ignore last command that's ps itself
+    cmd = ['ps', '-eo', 'pid,cmd']
+    if sudo:
+        cmd = ['sudo'] + cmd
+    pss = subprocess.check_output(cmd).decode().split('\n')[1:-2]
+    # ps -eo pid,cmd # format specifiers to see all list ps L
+    # above only pid and command
     pids = []
     for ps in pss:
         if ps.find(name_contains) != -1:
-          pid = int(re.findall('\d{3,}', ps)[1]) #PID
+          pid = int(re.findall('\d{3,}', ps)[0]) #PID
           pids.append(pid)
     return pids
 
-
 def kill_byname(name_contains,current_pid=os.getpid()):
-    for pid in is_running_byname(name_contains):
-        if pid == current_pid: # prevent suicide
-            continue
-        log_print("motion nvr :: killing by name contains: ", name_contains, " and pid: ", pid)
-        os.system('sudo kill '+ str(pid))
-
+    for pid in is_running_byname(name_contains, True):   
+        if pid == current_pid: 
+            continue # prevent suicide
+        while pid in running_pids(True): # try to kill as many times as needed                        
+            os.system('sudo kill '+ str(pid))
+        log_print("motion nvr :: killed by name contains: ", name_contains, " and pid: ", pid)            
 
 def is_running_motion():
     if is_running_byname('motiond'):
