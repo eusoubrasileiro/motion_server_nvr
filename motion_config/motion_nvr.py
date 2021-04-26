@@ -10,9 +10,10 @@ import time
 __sd_card_path__ = '/mnt/media_rw/2152-10F4'
 __motion_pictures_path__ = os.path.join(__sd_card_path__,'motion_data/pictures')
 __motion_movies_path__ = os.path.join(__sd_card_path__,'motion_data/movies')
-log_file = sys.stdout
+__log_file_path__ = os.path.join('/home/android', 'motion_nvr.txt')
 lock = th.Lock()
 # only need to lock when printing on main or background threads
+log_file = open(__log_file_path__, 'w') 
 
 cams = {'ipcam_frontwall' : {'ip' : '192.168.0.146', 'mac' : 'A0:9F:10:00:93:C6'},
   'ipcam_garage' :  { 'ip' : '192.168.0.102', 'mac' : 'A0:9F:10:01:30:D2'},
@@ -34,9 +35,10 @@ def progressbar(it, prefix="", size=60, file=sys.stdout):
 
 
 def log_print(*args, **kwargs):
-    with lock:
+    with lock:    
         print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)), file=log_file,**kwargs)
-
+        if kwargs.get('print_stdout', True):    # by default also prints on stdout     
+            print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)),**kwargs)
 
 def background_print_motion_logs(popen_file):
     def print_output(popen_file):
@@ -233,4 +235,8 @@ def main():
         update_hosts()
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as e:
+        log_print("motion nvr :: Python exception")
+        raise e
