@@ -3,8 +3,9 @@
 # from
 # https://askubuntu.com/q/8653/52310
 # https://stackoverflow.com/q/31902929/1207193
-tmux new-session -d -s motion_session
-tmux send-keys -t motion_session 'python3 ~/android_ldeploy_nvr/motion_nvr.py > python_errors.txt' C-m
-# tmux detach -s motion_session # dont need since -d is already detached
-# don't know but doesnt work
-# tmux new-session -d -s motion 'python3 android_ldeploy_nvr/motion_nvr.py > python_errors.txt'
+# dont know how to re-start though - repeating the commands don't restart 'python3 motion_nvr.py'
+tmux new -d -s motion_tmux
+tmux send -t motion_tmux 'python3 ~/android_ldeploy_nvr/motion_nvr.py' ENTER
+#tmux send-keys -t motion_session 'python3 ~/android_ldeploy_nvr/motion_nvr.py '
+# ALT+B after D detachs
+# `tmux attach` to attach back again and see what happend to Motion

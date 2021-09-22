@@ -11,9 +11,10 @@ __sd_card_path__ = '/mnt/media_rw/2152-10F4'
 __motion_pictures_path__ = os.path.join(__sd_card_path__,'motion_data/pictures')
 __motion_movies_path__ = os.path.join(__sd_card_path__,'motion_data/movies')
 __log_file_path__ = os.path.join('/home/android', 'motion_nvr.txt')
+
 lock = th.Lock()
 # only need to lock when printing on main or background threads
-log_file = open(__log_file_path__, 'w')
+log_file = open(__log_file_path__, 'w') 
 
 cams = {'ipcam_frontwall' : {'ip' : '192.168.0.146', 'mac' : 'A0:9F:10:00:93:C6'},
   'ipcam_garage' :  { 'ip' : '192.168.0.102', 'mac' : 'A0:9F:10:01:30:D2'},
@@ -35,9 +36,9 @@ def progressbar(it, prefix="", size=60, file=sys.stdout):
 
 
 def log_print(*args, **kwargs):
-    with lock:
+    with lock:    
         print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)), file=log_file,**kwargs)
-        if kwargs.get('print_stdout', True):    # by default also prints on stdout
+        if kwargs.get('print_stdout', True):    # by default don't print on stdout - since inside tmux and log-file already exists     
             print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)),**kwargs)
 
 def background_print_motion_logs(popen_file):
@@ -45,7 +46,7 @@ def background_print_motion_logs(popen_file):
         for line in iter(popen_file.readline, ''):
             log_print(line, end='') # printing to stdout
         popen_file.close()
-    thout = th.Thread(target=print_output, args=(popen_file.stdout,))
+    thout = th.Thread(target=print_output, args=(popen_file.stdout,)) # sons of daeomn are daeomns
     therr = th.Thread(target=print_output, args=(popen_file.stderr,))
     thout.start()
     therr.start()
@@ -142,7 +143,7 @@ def running_pids(sudo=False):
     """return list of pid's of running processes or [] empty if not running"""
     cmd = ['ps', '-eo', 'pid']
     if sudo:
-      cmd = ['sudo'] + cmd
+      cmd = ['sudo'] + cmd      
     pids = subprocess.check_output(cmd).decode().split('\n')[1:-2]
     return [ int(pid) for pid in pids ]
 
@@ -163,12 +164,12 @@ def is_running_byname(name_contains, sudo=False):
     return pids
 
 def kill_byname(name_contains,current_pid=os.getpid()):
-    for pid in is_running_byname(name_contains, True):
-        if pid == current_pid:
+    for pid in is_running_byname(name_contains, True):   
+        if pid == current_pid: 
             continue # prevent suicide
-        while pid in running_pids(True): # try to kill as many times as needed
+        while pid in running_pids(True): # try to kill as many times as needed                        
             os.system('sudo kill '+ str(pid))
-        log_print("motion nvr :: killed by name contains: ", name_contains, " and pid: ", pid)
+        log_print("motion nvr :: killed by name contains: ", name_contains, " and pid: ", pid)            
 
 def is_running_motion():
     if is_running_byname('motiond'):
@@ -234,9 +235,20 @@ def main():
         check_clean_sdcard()    # should also clean log-file once in a while to not make it huge
         update_hosts()
 
+#def main_wrapper():
+#    try:
+#        main()
+#    except Exception as e:
+#        log_print("motion nvr :: Python exception")
+#        raise e
+
 if __name__ == "__main__":
+#    thmain = th.Thread(target=main_wrapper, daemon=True) 
+#    thmain.start()
     try:
         main()
     except Exception as e:
         log_print("motion nvr :: Python exception")
         raise e
+
+# rclone mount -vv nvr_remote:sda1 /home/android/nvr_dir --daemon 
