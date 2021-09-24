@@ -7,10 +7,12 @@ import subprocess
 import threading as th
 import time
 
-__sd_card_path__ = '/mnt/media_rw/2152-10F4'
-__motion_pictures_path__ = os.path.join(__sd_card_path__,'motion_data/pictures')
-__motion_movies_path__ = os.path.join(__sd_card_path__,'motion_data/movies')
-__log_file_path__ = os.path.join('/home/android', 'motion_nvr.txt')
+
+__home__ = str(Path.home()) 
+__storage_path__ = '/home/andre/nwrouter' # target_dir for motion
+__motion_pictures_path__ = os.path.join(__storage_path__,'motion_data/pictures')
+__motion_movies_path__ = os.path.join(__storage_path__,'motion_data/movies')
+__log_file_path__ = os.path.join(__home__, 'motion_nvr.txt')
 
 lock = th.Lock()
 # only need to lock when printing on main or background threads
@@ -130,7 +132,7 @@ def clean_folder_old(path='.', percent=50):
 
 def check_clean_sdcard():
     """wether clean motion folders on sdcard due 90% space used"""
-    output = subprocess.check_output(['df', __sd_card_path__]).decode().replace('\n',' ').split(' ')
+    output = subprocess.check_output(['df', __storage_path__]).decode().replace('\n',' ').split(' ')
     sdcard_usage = int(output[-3][:-1]) # in percent
     log_print('motion nvr :: sdcard usage is: ', sdcard_usage, ' percent')
     if sdcard_usage > 90:
@@ -190,6 +192,18 @@ def start_motion():
     # run inside the configuration folder to guarantee those configurations are used
     return subprocess.Popen('cd ~/android_ldeploy_nvr/motion_config && motiond -d 6', stdout=subprocess.PIPE,
           stderr=subprocess.PIPE, shell=True, universal_newlines=True)
+
+
+def update_motion_config():
+    # check if main config file already using the proper storage path
+    with open('motion.conf', 'r') as file:
+        content = file.read()
+    target_dir = re.findall('target_dir /.+', content)[0].split('target_dir')[1].strip()   
+    mask_file /home/android 
+    if target_dir != __storage_path__: # not using create new file
+        re.sub('target_dir /.+', 'target_dir '+__storage_path__+'/motion_data', content)
+
+
 
 
 def start_or_pause_motion(cmd='pause'):

@@ -11,14 +11,23 @@ sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -
 if [ ! -f "motion-4.3.zip" ]; then # only if not downloaded yet
     wget -O motion-4.3.zip https://github.com/Motion-Project/motion/archive/refs/heads/4.3.zip
 fi
-if [ ! -d "FFmpeg-release-4.3" ]; then # only if not unziped yet
+if [ ! -d "motion-4.3" ]; then # only if not unziped yet
     unzip motion-4.3.zip
 fi
 
 cd motion-4.3/ && autoreconf -fiv 
 
-./configure --without-mysql --without-mariadb -without-pgsql \
+# compiling on a chroot linux android
+if [ "`uname -m`" = "aarch64" ] ; then
+    ./configure --without-mysql --without-mariadb -without-pgsql \
     --without-sqlite3 CFLAGS='-g -O3 -ftree-vectorize -mcpu=cortex-a53 -march=armv8-a+crypto+crc+simd'
+fi
+#  compiling on real linux not android
+if [ "`uname -m`" = "x86_64" ] ; then 
+    ./configure --without-mysql --without-mariadb -without-pgsql \
+    --without-sqlite3 --extra-cflags="-I/usr/local/include" \
+    --extra-ldflags="-L/usr/local/lib" 
+fi 
 
 make -j8 
 
