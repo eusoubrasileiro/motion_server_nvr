@@ -23,13 +23,14 @@ if [ "`uname -m`" = "aarch64" ] ; then
     --without-sqlite3 CFLAGS='-g -O3 -ftree-vectorize -mcpu=cortex-a53 -march=armv8-a+crypto+crc+simd'
 fi
 #  compiling on real linux not android
-if [ "`uname -m`" = "x86_64" ] ; then 
+if [ "`uname -m`" = "x86_64" ] ; then
     ./configure --without-mysql --without-mariadb -without-pgsql \
-    --without-sqlite3 --extra-cflags="-I/usr/local/include" \
-    --extra-ldflags="-L/usr/local/lib" 
-fi 
+    --without-sqlite3 CFLAGS='-I/usr/local/include' \
+    LDFLAGS='-L/usr/local/lib'
+fi
 
-make -j8 
+make -j$(nproc)
+
 
 # copy to /usr/local/bin the compiled binary
 sudo cp src/motion  /usr/local/bin/motiond

@@ -1,4 +1,12 @@
 #!/bin/bash
+
+# nmap --privileged -sS 192.168.0.1 from https://secwiki.org/w/Running_nmap_as_an_unprivileged_user 
+#    to avoid typing passwd again/again - need to install and config libcap
+#    or 
+#    export NMAP_PRIVILEGED=""
+export NMAP_PRIVILEGED=""
+# stop gdm and x server
+sudo service gdm stop
 # run inside tmux to avoid being killed after ssh session is over
 # from
 # https://askubuntu.com/q/8653/52310

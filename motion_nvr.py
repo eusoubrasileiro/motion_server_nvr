@@ -7,7 +7,6 @@ import subprocess
 import threading as th
 import time
 
-
 __home__ = str(Path.home()) 
 __storage_path__ = '/home/andre/nwrouter' # target_dir for motion
 __motion_pictures_path__ = os.path.join(__storage_path__,'motion_data/pictures')
@@ -69,7 +68,7 @@ def update_hosts():
     # default /etc/hosts file
     # python string formated
     hostsfile_default= "127.0.0.1       localhost\\n::1             localhost ip6-localhost ip6-loopback\\nff02::1         ip6-allnodes\\nff02::2         ip6-allrouters\\n"
-    hostsfile_write_cmd = "sudo -- sh -c -e \"echo 'python_string_formated_lines' > /etc/hosts\""
+    hostsfile_write_cmd = "sh -c -e \"echo 'python_string_formated_lines' > /etc/hosts\""
     # hostsfile_write_cmd.replace('python_string_formated_lines', hostsfile_default)
     #"""192.168.0.51    ipcam_frontwall
     #192.168.0.52    ipcam_garage
@@ -83,7 +82,11 @@ def update_hosts():
         log_print("{0:<30} {1:<30} {2:30}".format(cam, cam_ip_mac['ip'], cam_ip_mac['mac']))
 
     log_print('motion nvr :: updating /etc/hosts with nmap')
-    output = subprocess.check_output(['sudo', 'nmap', '-p', '554,80,5000', '-T4', '--min-hostgroup', '50',
+    #nmap --privileged -sS 192.168.0.1 from https://secwiki.org/w/Running_nmap_as_an_unprivileged_user 
+    # to avoid typing passwd again/again - need to install and config libcap
+    # or 
+    # export NMAP_PRIVILEGED=""
+    output = subprocess.check_output(['nmap', '-p', '554,80,5000', '-T4', '--min-hostgroup', '50',
     '--max-rtt-timeout', '1000ms', '--initial-rtt-timeout', '300ms', '--max-retries', '5', '--host-timeout', '20m',
     '--max-scan-delay', '1000ms',
     '192.168.0.0/24']).decode()
@@ -166,11 +169,11 @@ def is_running_byname(name_contains, sudo=False):
     return pids
 
 def kill_byname(name_contains,current_pid=os.getpid()):
-    for pid in is_running_byname(name_contains, True):   
+    for pid in is_running_byname(name_contains, False):   
         if pid == current_pid: 
             continue # prevent suicide
-        while pid in running_pids(True): # try to kill as many times as needed                        
-            os.system('sudo kill '+ str(pid))
+        while pid in running_pids(False): # try to kill as many times as needed                        
+            os.system('kill '+ str(pid))
         log_print("motion nvr :: killed by name contains: ", name_contains, " and pid: ", pid)            
 
 def is_running_motion():
@@ -214,7 +217,8 @@ def start_or_pause_motion(cmd='pause'):
                 output = subprocess.check_output(['curl', '-s',
                     'http://localhost:8088/'+str(i)+'/detection/'+cmd]).decode()
         except Exception as e:
-            log_print("motion nvr :: could not set detection parameter exception: ", e)
+            log_print("motion nvr :: could not set detection parameter yet - exception: ", e)
+            log_print("motion nvr :: could not set detection parameter yet - waiting")
             time.sleep(1)
             continue # try again
         else:
@@ -249,20 +253,16 @@ def main():
         check_clean_sdcard()    # should also clean log-file once in a while to not make it huge
         update_hosts()
 
-#def main_wrapper():
-#    try:
-#        main()
-#    except Exception as e:
-#        log_print("motion nvr :: Python exception")
-#        raise e
-
-if __name__ == "__main__":
-#    thmain = th.Thread(target=main_wrapper, daemon=True) 
-#    thmain.start()
+def main_wrapper():
     try:
         main()
     except Exception as e:
         log_print("motion nvr :: Python exception")
-        raise e
+        log_print(e)
+        log_print("motion nvr :: restarting")
+        main_wrapper()
+
+if __name__ == "__main__":
+    main_wrapper()        
 
 # rclone mount -vv nvr_remote:sda1 /home/android/nvr_dir --daemon 

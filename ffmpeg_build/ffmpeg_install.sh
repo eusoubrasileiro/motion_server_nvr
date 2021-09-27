@@ -43,9 +43,10 @@ fi
 if [ "`uname -m`" = "x86_64" ] ; then 
   ./configure --enable-optimizations  --enable-swscale \
   --disable-outdevs    --disable-indevs   \
-  --enable-shared --prefix=/usr/local
+  --enable-shared --prefix=/usr/local --extra-libs="-lpthread -lm" \
+  --ld="g++" 
   # --prefix=/usr/local is the default for real linux let it be
 fi
 
-sudo make -j8
+sudo make -j$(nproc)
 sudo make install 
