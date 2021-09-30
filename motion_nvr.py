@@ -1,11 +1,11 @@
-import time, datetime, os, subprocess, re
-import os
-from pathlib import Path
-import socket
-import sys
+import time, datetime 
 import subprocess
 import threading as th
-import time
+from pathlib import Path
+import sys, os 
+import re 
+import requests
+
 
 __home__ = str(Path.home()) 
 __storage_path__ = '/home/andre/nwrouter' # target_dir for motion
@@ -207,15 +207,26 @@ def update_motion_config():
         re.sub('target_dir /.+', 'target_dir '+__storage_path__+'/motion_data', content)
 
 
+regstat = re.compile('status (\w+)')
 
+def motion_detection():
+    """return detection status for all cameras
+    True if all active False otherwise"""
+    res = requests.get("http://localhost:8088/0/detection/status").content.decode()
+    for cam_status in regstat.findall(res):
+        if cam_status != 'ACTIVE':
+            return False
+    return True
 
-def start_or_pause_motion(cmd='pause'):
-    "'start' or 'pause'"
+def pause_detection(bool=True):
+    "True to pause all detection False to start detection'"
+    cmd = 'pause' if bool else 'start'
     while True:
         try: # start/pause motion detection
             for i in range(1,4):
-                output = subprocess.check_output(['curl', '-s',
-                    'http://localhost:8088/'+str(i)+'/detection/'+cmd]).decode()
+                requests.get('http://localhost:8088/'+str(i)+'/detection/'+cmd)
+            if not motion_detection() == bool:
+                break
         except Exception as e:
             log_print("motion nvr :: could not set detection parameter yet - exception: ", e)
             log_print("motion nvr :: could not set detection parameter yet - waiting")
@@ -233,7 +244,6 @@ def main():
     check_clean_sdcard()    # should also clean log-file once in a while to not make it huge
     update_hosts()
     proc_motion = start_motion()
-    detection=True
     background_print_motion_logs(proc_motion)  # 2 threads running on background printing motion log messages
     while True:
         if not is_running_motion(): # check if motion is running
@@ -241,14 +251,13 @@ def main():
             kill_motion() # just to make sure
             proc_motion = start_motion()
             background_print_motion_logs(proc_motion)  # 2 threads running on background printing motion log messages
-            detection=True
         else: # running
-            if not detection:
+            if not motion_detection():
                 if datetime.datetime.now().time() > datetime.time(hour=20) or datetime.datetime.now().time() < datetime.time(hour=6):
-                    detection = start_or_pause_motion('start')
+                    pause_detection(False)
             else: # detection running
                 if datetime.datetime.now().time() < datetime.time(hour=20) and datetime.datetime.now().time() > datetime.time(hour=6):
-                    detection = start_or_pause_motion('pause')
+                    pause_detection()
         time.sleep(15*60) # every 15 minutes only
         check_clean_sdcard()    # should also clean log-file once in a while to not make it huge
         update_hosts()
