@@ -125,13 +125,6 @@ def update_hosts():
         else:
           return True
 
-
-def get_size_avgfile(path):
-    file_sizes = [p.stat().st_size for p in Path(path).rglob('*')]
-    total = sum(file_sizes)
-    return total, total/len(file_sizes)
-
-
 def clean_folder_old(path='.', percent=50):
     # younger first
     files  = subprocess.check_output(['ls', '-t', path]).decode().split('\n')
@@ -145,9 +138,8 @@ def clean_folder_old(path='.', percent=50):
         if os.path.exists(cfile_path) and os.path.isfile(cfile_path):
           os.remove(cfile_path)
 
-
-def check_clean_sdcard():
-    """wether clean motion folders on sdcard due 90% space used"""
+def recover_space():
+    """run cleanning motion folders due >90% space used - older files first"""
     output = subprocess.check_output(['df', __storage_path__]).decode().replace('\n',' ').split(' ')
     sdcard_usage = int(output[-3][:-1]) # in percent
     log_print('motion nvr :: sdcard usage is: ', sdcard_usage, ' percent')
@@ -157,23 +149,14 @@ def check_clean_sdcard():
         # remove 50% of oldest movies
         clean_folder_old(__motion_movies_path__, 50)
 
-def running_pids(sudo=False):
-    """return list of pid's of running processes or [] empty if not running"""
-    cmd = ['ps', '-eo', 'pid']
-    if sudo:
-      cmd = ['sudo'] + cmd      
-    pids = subprocess.check_output(cmd).decode().split('\n')[1:-2]
-    return [ int(pid) for pid in pids ]
-
-def is_running_byname(name_contains, sudo=False):
-    """return list of pid's of running processes or [] empty if not running"""
+def psrunning_byname(name_contains):
+    """return list of pid's of running processes or [] empty if not running
+    if str.name contains"""
     # ignore last command that's ps itself
     cmd = ['ps', '-eo', 'pid,cmd']
-    if sudo:
-        cmd = ['sudo'] + cmd
     pss = subprocess.check_output(cmd).decode().split('\n')[1:-2]
-    # ps -eo pid,cmd # format specifiers to see all list ps L
-    # above only pid and command
+    # 'ps -eo pid,cmd' format specifiers to see ps with
+    # only pid and command
     pids = []
     for ps in pss:
         if ps.find(name_contains) != -1:
@@ -181,27 +164,29 @@ def is_running_byname(name_contains, sudo=False):
           pids.append(pid)
     return pids
 
-def kill_byname(name_contains,current_pid=os.getpid()):
-    for pid in is_running_byname(name_contains, False):   
-        if pid == current_pid: 
-            continue # prevent suicide
-        while pid in running_pids(False): # try to kill as many times as needed                        
+def kill_byname(name_contains, current_pid=os.getpid()):
+    pids = psrunning_byname(name_contains)   
+    while pids:
+        for pid in pids:
+            if pid == current_pid:  # self motion pid
+                if len(pids) == 1: # only self running - everybody else dead
+                    return 
+                continue # prevent suicide            
+            # try to kill as many times as needed                        
             os.system('kill '+ str(pid))
-        log_print("motion nvr :: killed by name contains: ", name_contains, " and pid: ", pid)            
+            log_print("motion nvr :: killed by name contains: ", name_contains, " and pid: ", pid)     
+        pids = psrunning_byname(name_contains)   
 
 def is_running_motion():
-    if is_running_byname('motiond'):
+    if psrunning_byname('motiond'):
       return True
     return False
-
 
 def kill_motion():
     kill_byname('motiond')
 
-
 def kill_python_nvr():
     kill_byname('motion_nvr.py')
-
 
 def start_motion():
     log_print('motion nvr :: starting motion')
@@ -209,7 +194,7 @@ def start_motion():
     return subprocess.Popen('cd ~/android_ldeploy_nvr/motion_config && motiond -d 6', stdout=subprocess.PIPE,
           stderr=subprocess.PIPE, shell=True, universal_newlines=True)
 
-
+# TODO:
 def update_motion_config():
     # check if main config file already using the proper storage path
     with open('motion.conf', 'r') as file:
@@ -221,7 +206,6 @@ def update_motion_config():
 
 
 regstat = re.compile('status (\w+)')
-
 def motion_detection():
     """return detection status for all cameras
     True if all active False otherwise"""
@@ -260,7 +244,7 @@ def main():
     log_print('motion nvr :: starting system :: pid :', os.getpid())
     kill_python_nvr()
     kill_motion()
-    check_clean_sdcard()    # should also clean log-file once in a while to not make it huge
+    recover_space()    # should also clean log-file once in a while to not make it huge
     update_hosts()
     proc_motion = start_motion()
     background_print_motion_logs(proc_motion)  # 2 threads running on background printing motion log messages
@@ -278,7 +262,7 @@ def main():
                 if datetime.datetime.now().time() < datetime.time(hour=20) and datetime.datetime.now().time() > datetime.time(hour=6):
                     pause_detection()
         time.sleep(15*60) # every 15 minutes only
-        check_clean_sdcard()    # should also clean log-file once in a while to not make it huge
+        recover_space()    # should also clean log-file once in a while to not make it huge
         update_hosts()
 
 def main_wrapper():
@@ -288,6 +272,7 @@ def main_wrapper():
         log_print("motion nvr :: Python exception")
         log_print(e)
         log_print("motion nvr :: restarting")
+        kill_motion() # kill what's left 
         main_wrapper()
 
 if __name__ == "__main__":
