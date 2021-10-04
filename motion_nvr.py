@@ -8,9 +8,9 @@ import requests
 
 
 __home__ = str(Path.home()) 
-__storage_path__ = '/home/andre/nwrouter' # target_dir for motion
-__motion_pictures_path__ = os.path.join(__storage_path__,'motion_data/pictures')
-__motion_movies_path__ = os.path.join(__storage_path__,'motion_data/movies')
+__storage_path__ = '/mnt/data/motion_data' # target_dir for motion
+__motion_pictures_path__ = os.path.join(__storage_path__,'pictures')
+__motion_movies_path__ = os.path.join(__storage_path__,'movies')
 __log_file_path__ = os.path.join(__home__, 'motion_nvr.txt')
 
 lock = th.Lock()
@@ -138,16 +138,16 @@ def clean_folder_old(path='.', percent=50):
         if os.path.exists(cfile_path) and os.path.isfile(cfile_path):
           os.remove(cfile_path)
 
-def recover_space():
+def recover_space(ppics=20, pvids=60):
     """run cleanning motion folders due >90% space used - older files first"""
     output = subprocess.check_output(['df', __storage_path__]).decode().replace('\n',' ').split(' ')
-    sdcard_usage = int(output[-3][:-1]) # in percent
-    log_print('motion nvr :: sdcard usage is: ', sdcard_usage, ' percent')
-    if sdcard_usage > 90:
-        # remove 90% of oldest pictures
-        clean_folder_old(__motion_pictures_path__, 90)
+    space_usage = int(output[-3][:-1]) # in percent
+    log_print('motion nvr :: space usage is: ', space_usage, ' percent')
+    if space_usage > 90:
+        # remove 50% of oldest pictures
+        clean_folder_old(__motion_pictures_path__, ppics)
         # remove 50% of oldest movies
-        clean_folder_old(__motion_movies_path__, 50)
+        clean_folder_old(__motion_movies_path__, pvids)
 
 def psrunning_byname(name_contains):
     """return list of pid's of running processes or [] empty if not running

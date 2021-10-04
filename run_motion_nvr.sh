@@ -6,7 +6,7 @@
 #    export NMAP_PRIVILEGED=""
 export NMAP_PRIVILEGED=""
 # stop gdm and x server
-sudo service gdm stop
+# sudo service gdm stop
 # run inside tmux to avoid being killed after ssh session is over
 # from
 # https://askubuntu.com/q/8653/52310

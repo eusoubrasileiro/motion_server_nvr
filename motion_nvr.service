@@ -1,0 +1,12 @@
+# https://linuxconfig.org/how-to-run-script-on-startup-on-ubuntu-20-04-focal-fossa-server-desktop
+# sudo chmod 744 /xxx/run_motion_nvr.sh
+# sudo chmod 664 /etc/systemd/system/motion_nvr.service
+
+[Unit]
+After=network.service
+
+[Service]
+ExecStart=/home/andre/android_ldeploy_nvr/run_motion_nvr.sh
+
+[Install]
+WantedBy=default.target
