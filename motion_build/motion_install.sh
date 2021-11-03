@@ -6,7 +6,7 @@ sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -
     build-essential pkgconf libtool \
     libzip-dev libjpeg-dev git  \
     libwebp-dev gettext libmicrohttpd-dev \
-    python3 nmap 
+    python3 nmap unzip 
 
 if [ ! -f "motion-4.3.zip" ]; then # only if not downloaded yet
     wget -O motion-4.3.zip https://github.com/Motion-Project/motion/archive/refs/heads/4.3.zip

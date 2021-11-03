@@ -90,10 +90,11 @@ def update_hosts():
             # to avoid typing passwd again/again - need to install and config libcap
             # or 
             # export NMAP_PRIVILEGED=""
-            output = subprocess.check_output(['nmap', '-p', '554,80,5000', '-T4', '--min-hostgroup', '50',
-            '--max-rtt-timeout', '1000ms', '--initial-rtt-timeout', '300ms', '--max-retries', '5', '--host-timeout', '20m',
-            '--max-scan-delay', '1000ms',
-            '192.168.0.0/24']).decode()
+            #output = subprocess.check_output(['nmap', '-p', '554,80,5000', '-T4', '--min-hostgroup', '50',
+            #'--max-rtt-timeout', '1000ms', '--initial-rtt-timeout', '300ms', '--max-retries', '5', '--host-timeout', '20m',
+            #'--max-scan-delay', '1000ms',
+            #'192.168.0.0/24']).decode()
+            output = subprocess.check_output(['nmap', '-p', '554,80,5000', '--max-retries', '3', '192.168.0.0/24']).decode()
             #sudo nmap -p 554,80,5000 -T4 --min-hostgroup 50 --max-rtt-timeout 1000ms --initial-rtt-timeout 300ms --max-retries 3 \
             # --host-timeout 20m --max-scan-delay 1000ms 192.168.0.0/24
         
@@ -191,7 +192,7 @@ def kill_python_nvr():
 def start_motion():
     log_print('motion nvr :: starting motion')
     # run inside the configuration folder to guarantee those configurations are used
-    return subprocess.Popen('cd ~/android_ldeploy_nvr/motion_config && motiond -d 6', stdout=subprocess.PIPE,
+    return subprocess.Popen('cd ~/motion_server_nvr/motion_config && motiond -d 6', stdout=subprocess.PIPE,
           stderr=subprocess.PIPE, shell=True, universal_newlines=True)
 
 # TODO:
@@ -199,8 +200,8 @@ def update_motion_config():
     # check if main config file already using the proper storage path
     with open('motion.conf', 'r') as file:
         content = file.read()
-    target_dir = re.findall('target_dir /.+', content)[0].split('target_dir')[1].strip()   
-    mask_file /home/android 
+    #target_dir = re.findall('target_dir /.+', content)[0].split('target_dir')[1].strip()   
+    #mask_file /home/android 
     if target_dir != __storage_path__: # not using create new file
         re.sub('target_dir /.+', 'target_dir '+__storage_path__+'/motion_data', content)
 

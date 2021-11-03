@@ -1,5 +1,4 @@
 #!/bin/bash
-# debian linux deploy 
 
 sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -yfq --no-install-recommends \
   autoconf \
@@ -50,3 +49,8 @@ fi
 
 sudo make -j$(nproc)
 sudo make install 
+
+echo "LD_LIBRARY_PATH=/usr/local/lib
+export LD_LIBRARY_PATH" >> ~/.bashrc
+
+source ~/.bashrc

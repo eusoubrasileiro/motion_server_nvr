@@ -4,7 +4,10 @@
 
 sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -yfq --no-install-recommends \
   hddtemp lm-sensors tmux \
-  nmap libcap2-bin curl htop
+  nmap libcap2-bin curl htop linux-crashdump 
+  
+# linux-crashdump identify and traceback crashs
+# https://askubuntu.com/questions/1173584/how-do-you-investigate-a-system-crash-when-there-are-no-records-logs
 
 # identify and setup sensors for being able to use
 # sudo sensors-detect
