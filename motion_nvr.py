@@ -7,7 +7,7 @@ import re
 import requests
 
 
-__home__ = str(Path.home()) 
+__home__ = '/home/andre' # must be full path since a service is run by root
 __storage_path__ = '/mnt/data/motion_data' # target_dir for motion
 __motion_pictures_path__ = os.path.join(__storage_path__,'pictures')
 __motion_movies_path__ = os.path.join(__storage_path__,'movies')
@@ -192,7 +192,7 @@ def kill_python_nvr():
 def start_motion():
     log_print('motion nvr :: starting motion')
     # run inside the configuration folder to guarantee those configurations are used
-    return subprocess.Popen('cd ~/motion_server_nvr/motion_config && motiond -d 6', stdout=subprocess.PIPE,
+    return subprocess.Popen('cd /home/andre/motion_server_nvr/motion_config && motiond -d 6', stdout=subprocess.PIPE,
           stderr=subprocess.PIPE, shell=True, universal_newlines=True)
 
 # TODO:
