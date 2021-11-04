@@ -1,7 +1,7 @@
 [Unit]
 Description = Motion Network Video Recorder Server 
 After=network.service
-Wants = network-online.target
+Wants=network-online.target
 
 [Service]
 ExecStart=/home/andre/motion_server_nvr/run_motion_nvr.sh
