@@ -5,7 +5,6 @@ Wants=network-online.target
 
 [Service]
 ExecStart=/home/andre/motion_server_nvr/run_motion_nvr.sh
-ExecStop=/usr/bin/pkill -f motion_nvr.py && /usr/bin/pkill -f motiond
 
 [Install]
 WantedBy=multi-user.target
