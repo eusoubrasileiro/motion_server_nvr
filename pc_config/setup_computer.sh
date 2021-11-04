@@ -3,7 +3,7 @@
 # sudo apt-get install lm-sensors
 
 sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -yfq --no-install-recommends \
-  hddtemp lm-sensors tmux \
+  hddtemp lm-sensors tmux python3 python3-pip \
   nmap libcap2-bin curl htop linux-crashdump 
   
 # linux-crashdump identify and traceback crashs
@@ -11,20 +11,6 @@ sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -
 
 # identify and setup sensors for being able to use
 # sudo sensors-detect
-
-# miniconda python
-#https://dev.to/waylonwalker/installing-miniconda-on-linux-from-the-command-line-4ad7
-# create a directory to install miniconda into, 
-# download the latest python 3 based install script for Linux 64 bit, 
-# run the install script, delete the
-# install script, then add a conda initialize to your bash 
-if [ ! -d "/home/andre/miniconda3" ]; then # only if not unziped yet
-    mkdir -p ~/miniconda3
-    wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
-    bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
-    rm -rf ~/miniconda3/miniconda.sh
-    ~/miniconda3/bin/conda init bash
-fi
 
 # To avoid sudo everywhere on python nvr script
 # Change owenership of /etc/hosts so default user python can write over it 
@@ -53,3 +39,5 @@ sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.ta
 # remove firmware updates dameon
 sudo apt-get remove unattended-upgrades
 sudo apt-get remove fwupd
+
+pip install requeriments.txt
