@@ -17,9 +17,12 @@ lock = th.Lock()
 # only need to lock when printing on main or background threads
 log_file = open(__log_file_path__, 'w') 
 
-cams = {'ipcam_frontwall' : {'ip' : '192.168.0.146', 'mac' : 'A0:9F:10:00:93:C6'},
-  'ipcam_garage' :  { 'ip' : '192.168.0.102', 'mac' : 'A0:9F:10:01:30:D2'},
-  'ipcam_kitchen' : {'ip' : '192.168.0.100', 'mac' : 'A0:9F:10:01:30:D8'}}
+# hostnames cannot have _ underscore in its name
+# https://stackoverflow.com/questions/3523028/valid-characters-of-a-hostname
+# givin errors systemd-resolved 
+cams = {'ipcam.frontwall' : {'ip' : '192.168.0.146', 'mac' : 'A0:9F:10:00:93:C6'},
+  'ipcam.garage' :  { 'ip' : '192.168.0.102', 'mac' : 'A0:9F:10:01:30:D2'},
+  'ipcam.kitchen' : {'ip' : '192.168.0.100', 'mac' : 'A0:9F:10:01:30:D8'}}
 
 
 def progressbar(it, prefix="", size=60, file=sys.stdout):
@@ -57,7 +60,7 @@ def current_hosts():
     "get current /etc/hosts"
     with open('/etc/hosts', 'r') as f:
         text = f.read()
-    ipcams = re.findall('(.+)\s{4,}(ipcam_.+)', text)
+    ipcams = re.findall('(.+)\s{4,}(ipcam.+)', text)
     for ip, name in ipcams:
         cams[name]['ip'] = ip
 
@@ -74,9 +77,9 @@ def update_hosts():
             hostsfile_default= "127.0.0.1       localhost\\n::1             localhost ip6-localhost ip6-loopback\\nff02::1         ip6-allnodes\\nff02::2         ip6-allrouters\\n"
             hostsfile_write_cmd = "sh -c -e \"echo 'python_string_formated_lines' > /etc/hosts\""
             # hostsfile_write_cmd.replace('python_string_formated_lines', hostsfile_default)
-            #"""192.168.0.51    ipcam_frontwall
-            #192.168.0.52    ipcam_garage
-            #192.168.0.53    ipcam_kitchen
+            #"""192.168.0.51    ipcam.frontwall
+            #192.168.0.52    ipcam.garage
+            #192.168.0.53    ipcam.kitchen
             #"""
             # command that workss
             #sudo -- sh -c -e "echo '127.0.0.1       localhost\n::1             localhost ip6-localhost ip6-loopback\nff02::1         ip6-allnodes\nff02::2         ip6-allrouters\n' > /etc/hosts"
