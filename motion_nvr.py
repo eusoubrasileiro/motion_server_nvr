@@ -214,7 +214,7 @@ def set_motion_folders(dir_motion_data, dir_home):
     with open(os.path.join(__home__, repository_name, 'motion_config', 'motion.conf'), 'r') as file:
         content = file.read()    
     with open(os.path.join(__home__, repository_name, 'motion_config', 'motion.conf'), 'w') as file:
-        content = re.sub('target_dir /.+', 'target_dir '+__storage_path__, content)
+        content = re.sub('target_dir /.+', 'target_dir '+os.path.abspath(__storage_path__), content)        
         file.write(content)
 
 
