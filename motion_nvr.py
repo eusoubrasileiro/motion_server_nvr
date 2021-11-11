@@ -210,9 +210,9 @@ def set_motion_folders(dir_motion_data, dir_home):
 
     repository_name = 'motion_server_nvr'
     # no matter what replaces the config file with passed target_dir
-    with open(os.path.join(__home__, repository_name, 'motion.conf'), 'r') as file:
+    with open(os.path.join(__home__, repository_name, 'motion_config', 'motion.conf'), 'r') as file:
         content = file.read()    
-    with open(os.path.join(__home__, repository_name, 'motion.conf'), 'w') as file:
+    with open(os.path.join(__home__, repository_name, 'motion_config', 'motion.conf'), 'w') as file:
         re.sub('target_dir /.+', 'target_dir '+__storage_path__, content)
         file.write(content)
 
