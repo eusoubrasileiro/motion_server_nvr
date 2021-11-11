@@ -2,20 +2,21 @@ import time, datetime
 import subprocess
 import threading as th
 import traceback
-import sys, os, re 
+import sys, os, re
 import requests
+import argparse
 from pathlib import Path
 
 
-__home__ = '/home/andre' # must be full path since a service is run by root
-__storage_path__ = '/mnt/data/motion_data' # target_dir for motion
-__motion_pictures_path__ = os.path.join(__storage_path__,'pictures')
-__motion_movies_path__ = os.path.join(__storage_path__,'movies')
-__log_file_path__ = os.path.join(__home__, 'motion_nvr.txt')
+__home__ = '' # must be full path since a service is run by root
+__storage_path__ = '' # target_dir for motion
+__motion_pictures_path__ = ''
+__motion_movies_path__ = ''
+__log_file_path__ = ''
 
 lock = th.Lock()
 # only need to lock when printing on main or background threads
-log_file = open(__log_file_path__, 'w') 
+log_file = None
 
 # hostnames cannot have _ underscore in its name
 # https://stackoverflow.com/questions/3523028/valid-characters-of-a-hostname
@@ -190,15 +191,30 @@ def start_motion():
     return subprocess.Popen('cd /home/andre/motion_server_nvr/motion_config && motiond -d 6', stdout=subprocess.PIPE,
           stderr=subprocess.PIPE, shell=True, universal_newlines=True)
 
-# TODO:
-def update_motion_config():
-    # check if main config file already using the proper storage path
-    with open('motion.conf', 'r') as file:
-        content = file.read()
-    #target_dir = re.findall('target_dir /.+', content)[0].split('target_dir')[1].strip()   
-    #mask_file /home/android 
-    if target_dir != __storage_path__: # not using create new file
-        re.sub('target_dir /.+', 'target_dir '+__storage_path__+'/motion_data', content)
+def set_motion_folders(dir_motion_data, dir_home):
+    """Set the motion folders:
+    * motion_data: str
+        sets `__storage_path__`  -> target_dir (motion.conf)
+    * home: str
+        sets `__home__` since this can be run as .service
+    """
+    #if not os.path.isdir(motion_data):
+    #    raise Exception("motion_data not a directory")
+    __storage_path__ = dir_motion_data
+    __home__ = dir_home
+    __log_file_path__ = os.path.join(__home__, 'motion_nvr.txt')
+    __motion_pictures_path__ = os.path.join(__storage_path__, 'pictures')
+    __motion_movies_path__ = os.path.join(__storage_path__, 'movies')    
+    global log_file 
+    log_file = open(__log_file_path__, 'w') 
+
+    repository_name = 'motion_server_nvr'
+    # no matter what replaces the config file with passed target_dir
+    with open(os.path.join(__home__, repository_name, 'motion.conf'), 'r') as file:
+        content = file.read()    
+    with open(os.path.join(__home__, repository_name, 'motion.conf'), 'w') as file:
+        re.sub('target_dir /.+', 'target_dir '+__storage_path__, content)
+        file.write(content)
 
 
 regstat = re.compile('status (\w+)')
@@ -272,6 +288,11 @@ def main_wrapper():
         main_wrapper()
 
 if __name__ == "__main__":
-    main_wrapper()        
-
+    parser = argparse.ArgumentParser(description='Start Motion NVR Server')
+    parser.add_argument('-s','--storage-path', help='Path to store videos and pictures  -> target_dir (motion.conf)', required=True)
+    parser.add_argument('-h','--home-folder', help='Path to home folder from where server will run', required=True)
+    args = parser.parse_args()
+    set_motion_folders(args.storage_path, args.home_folder)    
+    main_wrapper()
+    
 # rclone mount -vv nvr_remote:sda1 /home/android/nvr_dir --daemon 
