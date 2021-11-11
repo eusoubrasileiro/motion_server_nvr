@@ -4,7 +4,7 @@ After=network.service
 Wants=network-online.target
 
 [Service]
-ExecStart=/home/andre/motion_server_nvr/run_motion_nvr.sh
+ExecStart=/bin/bash /home/andre/motion_server_nvr/run_motion_nvr.sh
 
 [Install]
 WantedBy=multi-user.target
