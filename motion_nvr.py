@@ -289,10 +289,10 @@ def main_wrapper():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Start Motion NVR Server')
-    parser.add_argument('-s','--storage-path', help='Path to store videos and pictures  -> target_dir (motion.conf)', required=True)
-    parser.add_argument('-h','--home-folder', help='Path to home folder from where server will run', required=True)
+    parser.add_argument('-d','--data-path', help='Path to store videos and pictures  -> target_dir (motion.conf)', required=True)
+    parser.add_argument('-s','--server-home', help='Path to home folder from where server will run', required=True)
     args = parser.parse_args()
-    set_motion_folders(args.storage_path, args.home_folder)    
+    set_motion_folders(args.data_path, args.server_home)    
     main_wrapper()
     
 # rclone mount -vv nvr_remote:sda1 /home/android/nvr_dir --daemon 
