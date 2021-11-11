@@ -2,9 +2,9 @@ import time, datetime
 import subprocess
 import threading as th
 import traceback
-import sys, os 
-import re 
+import sys, os, re 
 import requests
+from pathlib import Path
 
 
 __home__ = '/home/andre' # must be full path since a service is run by root
@@ -92,7 +92,9 @@ def update_hosts():
             with open('/etc/hosts', 'r') as f:
                 fhosts = f.readlines()
             
-            with open('/etc/hosts', 'w') as f:
+            # in case hosts doesnt have cameras hostnames 
+            # this wont add the cameras ips
+            with open('/etc/hosts', 'w') as f: 
                 for line in fhosts:
                     _, hostname = re.findall('(\S+)\s+(\S+)', line)[0] # ip, hostname
                     hostname = hostname.strip()
@@ -112,29 +114,36 @@ def update_hosts():
         else:
           return True
 
-def clean_folder_old(path='.', percent=50):
-    # younger first
-    files  = subprocess.check_output(['ls', '-t', path]).decode().split('\n')
-    # number of files to remove
-    ndelete = int(len(files)*percent/100.)
-    # get oldest first
-    files = files[::-1][:ndelete]
-    log_print('motion nvr :: cleaning ', percent, ' percent files. Deleting: ', ndelete, ' files')
-    for cfile in progressbar(files, "deleting old files: ", 50):
-        cfile_path = os.path.join(path, cfile)
-        if os.path.exists(cfile_path) and os.path.isfile(cfile_path):
-          os.remove(cfile_path)
 
-def recover_space(ppics=20, pvids=60):
-    """run cleanning motion folders due >90% space used - older files first"""
-    output = subprocess.check_output(['df', __storage_path__]).decode().replace('\n',' ').split(' ')
-    space_usage = int(output[-3][:-1]) # in percent
+
+def recover_space(space_max=300, perc_pics=20, perc_vids=60):
+    """run cleanning motion folders files reclaiming space used (older files first)
+    * space_max : float (default 300 GB)
+        maximum folder size in GB
+    * perc_pics : float 
+        percentage of space_max to reclaim from the pictures folder
+    * perc_vids : float
+        percentage of space_max to reclaim from the video folder
+    """
+    def clean_old_files(path='.', percent=50):        
+        files  = subprocess.check_output(['ls', '-t', path]).decode().split('\n') # -t younger first        
+        ndelete = int(len(files)*percent/100.) # number of files to remove        
+        files = files[::-1][:ndelete] # get oldest first
+        log_print('motion nvr :: cleaning ', percent, ' percent files. Deleting: ', ndelete, ' files')
+        for cfile in progressbar(files, "deleting old files: ", 50):
+            cfile_path = os.path.join(path, cfile)
+            if os.path.exists(cfile_path) and os.path.isfile(cfile_path):
+                os.remove(cfile_path)
+
+    def folder_size(folder: str) -> float:
+        """folder size in GB"""
+        return sum(p.stat().st_size for p in Path(folder).rglob('*'))/(1024**3)
+
+    space_usage = folder_size(__storage_path__)    
     log_print('motion nvr :: space usage is: ', space_usage, ' percent')
-    if space_usage > 90:
-        # remove 50% of oldest pictures
-        clean_folder_old(__motion_pictures_path__, ppics)
-        # remove 50% of oldest movies
-        clean_folder_old(__motion_movies_path__, pvids)
+    if space_usage >= 0.9*space_max:
+        clean_old_files(__motion_pictures_path__, perc_pics) # remove % of oldest pictures
+        clean_old_files(__motion_movies_path__, perc_vids) # remove % of oldest movies
 
 def psrunning_byname(name_contains):
     """return list of pid's of running processes or [] empty if not running
