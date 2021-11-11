@@ -1,7 +1,7 @@
 import time, datetime 
 import subprocess
 import threading as th
-from pathlib import Path
+import traceback
 import sys, os 
 import re 
 import requests
@@ -56,72 +56,55 @@ def background_print_motion_logs(popen_file):
     therr.start()
 
 
-def current_hosts():
-    "get current /etc/hosts"
-    with open('/etc/hosts', 'r') as f:
-        text = f.read()
-    ipcams = re.findall('(.+)\s{4,}(ipcam.+)', text)
-    for ip, name in ipcams:
-        cams[name]['ip'] = ip
-
-
-# repeater is modifying the last values of the mac address
+# repeater is modifying the first values of the mac address
 def update_hosts():
     """not having dns-server or willing to install dd-wrt (dnsmasq) for while"""
     tries=0
     while True:
         try:
             tries +=1 
-            # default /etc/hosts file
-            # python string formated
-            hostsfile_default= "127.0.0.1       localhost\\n::1             localhost ip6-localhost ip6-loopback\\nff02::1         ip6-allnodes\\nff02::2         ip6-allrouters\\n"
-            hostsfile_write_cmd = "sh -c -e \"echo 'python_string_formated_lines' > /etc/hosts\""
-            # hostsfile_write_cmd.replace('python_string_formated_lines', hostsfile_default)
-            #"""192.168.0.51    ipcam.frontwall
-            #192.168.0.52    ipcam.garage
-            #192.168.0.53    ipcam.kitchen
-            #"""
-            # command that workss
-            #sudo -- sh -c -e "echo '127.0.0.1       localhost\n::1             localhost ip6-localhost ip6-loopback\nff02::1         ip6-allnodes\nff02::2         ip6-allrouters\n' > /etc/hosts"
-            current_hosts()
+            log_print('motion nvr :: updating /etc/hosts with nmap') 
             log_print('motion nvr :: current hostname ips')
-            for cam, cam_ip_mac in cams.items():
-                log_print("{0:<30} {1:<30} {2:30}".format(cam, cam_ip_mac['ip'], cam_ip_mac['mac']))
-        
-            log_print('motion nvr :: updating /etc/hosts with nmap')
-            #nmap --privileged -sS 192.168.0.1 from https://secwiki.org/w/Running_nmap_as_an_unprivileged_user 
-            # to avoid typing passwd again/again - need to install and config libcap
-            # or 
-            # export NMAP_PRIVILEGED=""
-            #output = subprocess.check_output(['nmap', '-p', '554,80,5000', '-T4', '--min-hostgroup', '50',
-            #'--max-rtt-timeout', '1000ms', '--initial-rtt-timeout', '300ms', '--max-retries', '5', '--host-timeout', '20m',
-            #'--max-scan-delay', '1000ms',
-            #'192.168.0.0/24']).decode()
-            output = subprocess.check_output(['nmap', '-p', '554,80,5000', '--max-retries', '3', '192.168.0.0/24']).decode()
-            #sudo nmap -p 554,80,5000 -T4 --min-hostgroup 50 --max-rtt-timeout 1000ms --initial-rtt-timeout 300ms --max-retries 3 \
-            # --host-timeout 20m --max-scan-delay 1000ms 192.168.0.0/24
-        
-            ips = re.findall('\d{3}\.\d{3}\.\d{1}\.\d{1,3}', output)
-            macs = re.findall('(?:[0-9A-F]{2}[:-]){5}(?:[0-9A-F]{2})', output)
-            for cam, cam_ip_mac in cams.items():
+            for cam, attr in cams.items():
+                log_print("{0:<30} {1:<30} {2:30}".format(cam, attr['ip'], attr['mac']))
+
+            # get ips from cameras macs
+            # same as arp-scan -localnet but don't need root
+            neighbours = subprocess.check_output(['ip', 'neighbour', 'show']).decode() 
+            ips = re.findall('\d{3}\.\d{3}\.\d{1}\.\d{1,3}', neighbours)
+            macs = re.findall('(?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2})', neighbours)
+            macs = [ mac.upper() for mac in macs] # make sure all upper-case 
+            log_print("motion nvr :: mac's found")
+            log_print(macs)
+
+            for cam, attr in cams.items():
                 for ip, mac in zip(ips, macs):
                     # compare only the last 3 groups of hex values
                     # since the repeater may have changed the first 3 groups
-                    if mac[-8:] == cam_ip_mac['mac'][-8:]:
-                        cams.update({cam :  {'ip' : ip, 'mac' : mac} })
-        
-            log_print("motion nvr :: mac's found")
-            log_print(macs)
+                    if mac[-8:] == attr['mac'][-8:]:
+                        cams[cam]['ip'] = ip
+
             log_print('motion nvr :: updated hostname ips')
-            for cam, cam_ip_mac in cams.items():
-                log_print("{0:<30} {1:<30} {2:30}".format(cam, cam_ip_mac['ip'], cam_ip_mac['mac']))
-        
-            hosts_cams_lines = [cam_ip_mac['ip']+' '*4+cam+'\\n' for cam, cam_ip_mac in cams.items() if cam_ip_mac['ip'] != '' ] # ignore empty ip's
-            os.system(hostsfile_write_cmd.replace('python_string_formated_lines',
-                  hostsfile_default+''.join(hosts_cams_lines)))
-        except Exception as e:
+            for cam, attr in cams.items():
+                log_print("{0:<30} {1:<30} {2:30}".format(cam, attr['ip'], attr['mac']))
+
+            # update file /etc/hosts ip -> name
+            with open('/etc/hosts', 'r') as f:
+                fhosts = f.readlines()
+            
+            with open('/etc/hosts', 'w') as f:
+                for line in fhosts:
+                    _, hostname = re.findall('(\S+)\s+(\S+)', line)[0] # ip, hostname
+                    hostname = hostname.strip()
+                    if hostname in cams:
+                        #print(hostname+' '*4+cams[hostname]['ip'])
+                        f.write(cams[hostname]['ip']+' '*4+hostname+'\n')
+                    else:
+                        f.write(line)
+                        #print(line[:-1])
+        except Exception:
           log_print("motion nvr :: update_hosts python exception")
-          log_print(e)
+          log_print(traceback.format_exc())
           time.sleep(1)
           if tries > 3: # try 3 times
               return False
