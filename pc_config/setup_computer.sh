@@ -4,10 +4,8 @@
 
 sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -yfq --no-install-recommends \
   hddtemp lm-sensors tmux python3 python3-pip \
-  nmap libcap2-bin curl htop linux-crashdump 
+  nmap libcap2-bin curl htop cifs-utils
   
-# linux-crashdump identify and traceback crashs
-# https://askubuntu.com/questions/1173584/how-do-you-investigate-a-system-crash-when-there-are-no-records-logs
 
 # identify and setup sensors for being able to use
 # sudo sensors-detect
@@ -40,4 +38,33 @@ sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.ta
 sudo apt-get remove unattended-upgrades
 sudo apt-get remove fwupd
 
-pip install requeriments.txt
+pip install -r requeriments.txt
+
+# replacing systemd by dnsmasq for domain name resolution and also
+# as a minimal dns server
+# https://askubuntu.com/questions/898605/how-to-disable-systemd-resolved-and-resolve-dns-with-dnsmasq
+
+### DNS-MASQ My Custom DNS SERVER
+## add your server ip to your router 
+# secondary dns server
+sudo apt-get install dnsmasq -y
+sudo systemctl stop systemd-resolved
+sudo systemctl disable systemd-resolved
+sudo bash -c "echo 'listen-address=::1,127.0.0.1,192.168.0.90
+# upstream
+server=192.168.0.1 
+# Google's nameservers
+server=8.8.8.8 
+server=8.8.4.4
+' >> /etc/dnsmasq.conf"
+# force to use dnsmasq is only dns-server
+sudo rm /etc/resolv.conf
+sudo bash -c "echo '# Use local dnsmasq for resolving
+nameserver 127.0.0.1
+options edns0 trust-ad' > /etc/resolv.conf"
+sudo systemctl stop dnsmasq
+sudo systemctl start dnsmasq
+# all names on /etc/hosts will be served 
+# by dnsmasq
+# so you can use arp-scan -localnet 
+# to update then by mac-adress
