@@ -209,11 +209,12 @@ def set_motion_folders(dir_motion_data, dir_home):
     log_file = open(__log_file_path__, 'w') 
 
     repository_name = 'motion_server_nvr'
+    log_print("motion nvr :: updating config files")
     # no matter what replaces the config file with passed target_dir
     with open(os.path.join(__home__, repository_name, 'motion_config', 'motion.conf'), 'r') as file:
         content = file.read()    
     with open(os.path.join(__home__, repository_name, 'motion_config', 'motion.conf'), 'w') as file:
-        re.sub('target_dir /.+', 'target_dir '+__storage_path__, content)
+        content = re.sub('target_dir /.+', 'target_dir '+__storage_path__, content)
         file.write(content)
 
 
