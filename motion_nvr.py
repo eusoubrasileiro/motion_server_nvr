@@ -7,16 +7,17 @@ import requests
 import argparse
 from pathlib import Path
 
-
-__home__ = '' # must be full path since a service is run by root
-__storage_path__ = '' # target_dir for motion
-__motion_pictures_path__ = ''
-__motion_movies_path__ = ''
-__log_file_path__ = ''
+# recommended approach dict as global
+config = { 'home' : None,  # must be full path since a service is run by root
+    'storage_path' : None, # target_dir for motion
+    'motion_pictures_path' : None,
+    'motion_movies_path' : None,
+    'log_file' : None 
+}
 
 lock = th.Lock()
 # only need to lock when printing on main or background threads
-log_file = None
+
 
 # hostnames cannot have _ underscore in its name
 # https://stackoverflow.com/questions/3523028/valid-characters-of-a-hostname
@@ -42,7 +43,7 @@ def progressbar(it, prefix="", size=60, file=sys.stdout):
 
 def log_print(*args, **kwargs):
     with lock:    
-        print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)), file=log_file,**kwargs)
+        print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)), file=config['log_file'],**kwargs)
         if kwargs.get('print_stdout', True):    # by default don't print on stdout - since inside tmux and log-file already exists     
             print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)),**kwargs)
 
@@ -140,11 +141,11 @@ def recover_space(space_max=300, perc_pics=20, perc_vids=60):
         """folder size in GB"""
         return sum(p.stat().st_size for p in Path(folder).rglob('*'))/(1024**3)
 
-    space_usage = folder_size(__storage_path__)    
-    log_print('motion nvr :: space usage is: ', space_usage, ' percent')
+    space_usage = folder_size(config['storage_path'])
+    log_print('motion nvr :: data folder size is {:.2f}  GiB'.format(space_usage))
     if space_usage >= 0.9*space_max:
-        clean_old_files(__motion_pictures_path__, perc_pics) # remove % of oldest pictures
-        clean_old_files(__motion_movies_path__, perc_vids) # remove % of oldest movies
+        clean_old_files(config['motion_pictures_path'], perc_pics) # remove % of oldest pictures
+        clean_old_files(config['motion_movies_path'], perc_vids) # remove % of oldest movies
 
 def psrunning_byname(name_contains):
     """return list of pid's of running processes or [] empty if not running
@@ -191,30 +192,28 @@ def start_motion():
     return subprocess.Popen('cd /home/andre/motion_server_nvr/motion_config && motiond -d 6', stdout=subprocess.PIPE,
           stderr=subprocess.PIPE, shell=True, universal_newlines=True)
 
-def set_motion_folders(dir_motion_data, dir_home):
-    """Set the motion folders:
+def set_motion_config(dir_motion_data, dir_home):
+    """Sets the motion configuration files, paths and log-file:
     * motion_data: str
-        sets `__storage_path__`  -> target_dir (motion.conf)
+        sets `config['storage_path']`  -> target_dir (motion.conf)
     * home: str
-        sets `__home__` since this can be run as .service
+        sets `config['home']` since this can be run as .service
     """
     #if not os.path.isdir(motion_data):
     #    raise Exception("motion_data not a directory")
-    __storage_path__ = dir_motion_data
-    __home__ = dir_home
-    __log_file_path__ = os.path.join(__home__, 'motion_nvr.txt')
-    __motion_pictures_path__ = os.path.join(__storage_path__, 'pictures')
-    __motion_movies_path__ = os.path.join(__storage_path__, 'movies')    
-    global log_file 
-    log_file = open(__log_file_path__, 'w') 
+    config['storage_path'] = dir_motion_data
+    config['home'] = dir_home    
+    config['motion_pictures_path'] = os.path.join(config['storage_path'], 'pictures')
+    config['motion_movies_path'] = os.path.join(config['storage_path'], 'movies')     
+    config['log_file'] = open(os.path.join(config['home'], 'motion_nvr.txt'), 'w') 
 
     repository_name = 'motion_server_nvr'
     log_print("motion nvr :: updating config files")
     # no matter what replaces the config file with passed target_dir
-    with open(os.path.join(__home__, repository_name, 'motion_config', 'motion.conf'), 'r') as file:
+    with open(os.path.join(config['home'], repository_name, 'motion_config', 'motion.conf'), 'r') as file:
         content = file.read()    
-    with open(os.path.join(__home__, repository_name, 'motion_config', 'motion.conf'), 'w') as file:
-        content = re.sub('target_dir /.+', 'target_dir '+os.path.abspath(__storage_path__), content)        
+    with open(os.path.join(config['home'], repository_name, 'motion_config', 'motion.conf'), 'w') as file:
+        content = re.sub('target_dir /.+', 'target_dir '+os.path.abspath(config['storage_path']), content)        
         file.write(content)
 
 
@@ -293,7 +292,7 @@ if __name__ == "__main__":
     parser.add_argument('-d','--data-path', help='Path to store videos and pictures  -> target_dir (motion.conf)', required=True)
     parser.add_argument('-s','--server-home', help='Path to home folder from where server will run', required=True)
     args = parser.parse_args()
-    set_motion_folders(args.data_path, args.server_home)    
+    set_motion_config(args.data_path, args.server_home)    
     main_wrapper()
     
 # rclone mount -vv nvr_remote:sda1 /home/android/nvr_dir --daemon 
