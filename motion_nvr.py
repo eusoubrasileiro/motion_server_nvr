@@ -65,7 +65,7 @@ def update_hosts():
     while True:
         try:
             tries +=1 
-            log_print('motion nvr :: updating /etc/hosts with nmap') 
+            log_print('motion nvr :: updating /etc/hosts with `ip neighbour show`') 
             log_print('motion nvr :: current hostname ips')
             for cam, attr in cams.items():
                 log_print("{0:<30} {1:<30} {2:30}".format(cam, attr['ip'], attr['mac']))
@@ -73,12 +73,11 @@ def update_hosts():
             # get ips from cameras macs
             # same as arp-scan -localnet but don't need root
             neighbours = subprocess.check_output(['ip', 'neighbour', 'show']).decode() 
-            ips = re.findall('\d{3}\.\d{3}\.\d{1}\.\d{1,3}', neighbours)
-            macs = re.findall('(?:[0-9A-Fa-f]{2}[:-]){5}(?:[0-9A-Fa-f]{2})', neighbours)
+            ip_mac = re.findall('(\d{3}\.\d{3}\.\d{1,3}\.\d{1,3}).+((?:[0-9a-fA-F]{2}:?){6})', neighbours)
+            ips, macs = zip(*ip_mac)
             macs = [ mac.upper() for mac in macs] # make sure all upper-case 
-            log_print("motion nvr :: mac's found")
-            log_print(macs)
-
+            log_print("motion nvr :: ip-mac's found")
+            log_print(ip_mac)
             for cam, attr in cams.items():
                 for ip, mac in zip(ips, macs):
                     # compare only the last 3 groups of hex values
