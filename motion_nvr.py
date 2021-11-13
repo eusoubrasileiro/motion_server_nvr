@@ -117,7 +117,7 @@ def update_hosts():
 
 
 
-def recover_space(space_max=300, perc_pics=20, perc_vids=60):
+def recover_space(space_max=350, perc_pics=5, perc_vids=5):
     """run cleanning motion folders files reclaiming space used (older files first)
     * space_max : float (default 300 GB)
         maximum folder size in GB
@@ -126,7 +126,7 @@ def recover_space(space_max=300, perc_pics=20, perc_vids=60):
     * perc_vids : float
         percentage of space_max to reclaim from the video folder
     """
-    def clean_old_files(path='.', percent=50):        
+    def clean_old_files(path='.', percent=5):        
         files  = subprocess.check_output(['ls', '-t', path]).decode().split('\n') # -t younger first        
         ndelete = int(len(files)*percent/100.) # number of files to remove        
         files = files[::-1][:ndelete] # get oldest first
@@ -142,7 +142,7 @@ def recover_space(space_max=300, perc_pics=20, perc_vids=60):
 
     space_usage = folder_size(config['storage_path'])
     log_print('motion nvr :: data folder size is {:.2f}  GiB'.format(space_usage))
-    if space_usage >= 0.9*space_max:
+    if space_usage >= 0.95*space_max:
         clean_old_files(config['motion_pictures_path'], perc_pics) # remove % of oldest pictures
         clean_old_files(config['motion_movies_path'], perc_vids) # remove % of oldest movies
 
