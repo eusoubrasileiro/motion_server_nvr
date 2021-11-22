@@ -14,7 +14,9 @@ sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -
   libva2 \
   i965-va-driver \
   libvdpau-dev \
-  ninja-build 
+  ninja-build  \
+  libva-dev \
+  libmfx-dev 
 # libv4l-dev libv4l-0  for video4linux decoders/encoders
 
 if [ ! -f "ffmpeg-4.3.zip" ]; then # only if not downloaded yet
@@ -56,7 +58,8 @@ if [ "`uname -m`" = "x86_64" ] ; then
   --enable-libx265 \
   --enable-gpl \
   --enable-gnutls \
-  --enable-nonfree
+  --enable-nonfree \
+  --enable-libmfx
   # --prefix=/usr/local is the default for real linux let it be
 fi
 
