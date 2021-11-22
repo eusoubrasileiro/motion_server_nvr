@@ -7,14 +7,14 @@ sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -
     libwebp-dev gettext libmicrohttpd-dev \
     python3 unzip 
 
-if [ ! -f "motion-4.3.zip" ]; then # only if not downloaded yet
-    wget -O motion-4.3.zip https://github.com/Motion-Project/motion/archive/refs/heads/4.4.zip
+if [ ! -f "motion-4.4.zip" ]; then # only if not downloaded yet
+    wget -O motion-4.4.zip https://github.com/Motion-Project/motion/archive/refs/tags/release-4.4.0.zip
 fi
-if [ ! -d "motion-4.3" ]; then # only if not unziped yet
-    unzip motion-4.3.zip
+if [ ! -d "motion-release-4.4.0" ]; then # only if not unziped yet
+    unzip motion-4.4.zip
 fi
 
-cd motion-4.3/ && autoreconf -fiv 
+cd motion-release-4.4.0/ && autoreconf -fiv 
 
 # compiling on a chroot linux android
 if [ "`uname -m`" = "aarch64" ] ; then
