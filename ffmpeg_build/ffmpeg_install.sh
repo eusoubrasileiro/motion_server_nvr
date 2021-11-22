@@ -61,7 +61,7 @@ if [ "`uname -m`" = "x86_64" ] ; then
   --enable-gnutls \
   --enable-nonfree \
   --enable-libvorbis \
-  --arch=x86_64 --disable-yasm
+  --arch=x86_64 --disable-yasm \
   --enable-vaapi --enable-libmfx
 
   # --prefix=/usr/local is the default for real linux let it be
