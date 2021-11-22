@@ -12,7 +12,7 @@ sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -
   libv4l-0 \
   libva-dev \
   libva2 \
-  i965-va-driver \ 
+  i965-va-driver \
   libvdpau-dev \
   ninja-build 
 # libv4l-dev libv4l-0  for video4linux decoders/encoders
@@ -49,7 +49,6 @@ if [ "`uname -m`" = "x86_64" ] ; then
   --disable-outdevs    --disable-indevs   \
   --enable-shared --prefix=/usr/local --extra-libs="-lpthread -lm" \
   --ld="g++" \
-  --enable-libsvtav1 \
   --enable-libdav1d \
   --enable-libvpx \
   --enable-libfreetype \
