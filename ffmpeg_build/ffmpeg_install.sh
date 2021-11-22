@@ -9,7 +9,12 @@ sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -
   wget \
   unzip \
   libv4l-dev \
-  libv4l-0
+  libv4l-0 \
+  libva-dev \
+  libva2 \
+  i965-va-driver \ 
+  libvdpau-dev \
+  ninja-build 
 # libv4l-dev libv4l-0  for video4linux decoders/encoders
 
 if [ ! -f "ffmpeg-4.3.zip" ]; then # only if not downloaded yet
@@ -43,7 +48,16 @@ if [ "`uname -m`" = "x86_64" ] ; then
   ./configure --enable-optimizations  --enable-swscale \
   --disable-outdevs    --disable-indevs   \
   --enable-shared --prefix=/usr/local --extra-libs="-lpthread -lm" \
-  --ld="g++" 
+  --ld="g++" \
+  --enable-libsvtav1 \
+  --enable-libdav1d \
+  --enable-libvpx \
+  --enable-libfreetype \
+  --enable-libx264 \
+  --enable-libx265 \
+  --enable-gpl \
+  --enable-gnutls \
+  --enable-nonfree
   # --prefix=/usr/local is the default for real linux let it be
 fi
 
