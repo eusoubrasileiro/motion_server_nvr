@@ -10,13 +10,15 @@ sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -
   unzip \
   libv4l-dev \
   libv4l-0 \
-  libva-dev \
-  libva2 \
   i965-va-driver \
   libvdpau-dev \
   ninja-build  \
   libva-dev \
-  libmfx-dev 
+  libva2 \
+  libmfx-dev \
+  libvdpau-dev \
+  libvorbis-dev \
+  v4l2loopback-dkms # support hevc_qs intel hardware decoding h265
 # libv4l-dev libv4l-0  for video4linux decoders/encoders
 
 if [ ! -f "ffmpeg-4.3.zip" ]; then # only if not downloaded yet
@@ -47,19 +49,21 @@ if [ "`uname -m`" = "aarch64" ] ; then
 fi
 #  compiling on real linux not android
 if [ "`uname -m`" = "x86_64" ] ; then 
+  # intel quick sync hardware decoders
+  sudo apt-get install libva-dev libmfx-dev intel-media-va-driver-non-free
+  export LIBVA_DRIVER_NAME=iHD
+
   ./configure --enable-optimizations  --enable-swscale \
   --disable-outdevs    --disable-indevs   \
   --enable-shared --prefix=/usr/local --extra-libs="-lpthread -lm" \
   --ld="g++" \
-  --enable-libdav1d \
-  --enable-libvpx \
-  --enable-libfreetype \
-  --enable-libx264 \
-  --enable-libx265 \
   --enable-gpl \
   --enable-gnutls \
   --enable-nonfree \
-  --enable-libmfx
+  --enable-libvorbis \
+  --arch=x86_64 --disable-yasm
+  --enable-vaapi --enable-libmfx
+
   # --prefix=/usr/local is the default for real linux let it be
 fi
 
