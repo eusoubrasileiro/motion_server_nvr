@@ -24,7 +24,9 @@ lock = th.Lock()
 # givin errors systemd-resolved 
 cams = {'ipcam.frontwall' : {'ip' : '192.168.0.146', 'mac' : 'A0:9F:10:00:93:C6'},
   'ipcam.garage' :  { 'ip' : '192.168.0.102', 'mac' : 'A0:9F:10:01:30:D2'},
-  'ipcam.kitchen' : {'ip' : '192.168.0.100', 'mac' : 'A0:9F:10:01:30:D8'}}
+  'ipcam.kitchen' : {'ip' : '192.168.0.100', 'mac' : 'A0:9F:10:01:30:D8'},
+  'ipcam.street' : {'ip' : '192.168.0.172', 'mac' : '9C:A3:A9:6A:87:5B'}
+  }
 
 
 def progressbar(it, prefix="", size=60, file=sys.stdout):
