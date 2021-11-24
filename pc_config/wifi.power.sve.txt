@@ -1,2 +1,0 @@
-cat /etc/NetworkManager/conf.d/default-wifi-powersave-on.conf
-wifi.powersave = 2 to disable power save.

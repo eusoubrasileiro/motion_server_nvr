@@ -22,11 +22,11 @@ lock = th.Lock()
 # hostnames cannot have _ underscore in its name
 # https://stackoverflow.com/questions/3523028/valid-characters-of-a-hostname
 # givin errors systemd-resolved 
-cams = {'ipcam.frontwall' : {'ip' : '192.168.0.146', 'mac' : 'A0:9F:10:00:93:C6'},
-  'ipcam.garage' :  { 'ip' : '192.168.0.102', 'mac' : 'A0:9F:10:01:30:D2'},
-  'ipcam.kitchen' : {'ip' : '192.168.0.100', 'mac' : 'A0:9F:10:01:30:D8'},
-  'ipcam.street' : {'ip' : '192.168.0.172', 'mac' : '9C:A3:A9:6A:87:5B'}
-  }
+cams = {'ipcam.frontwall' : {'ip' : '', 'mac' : 'A0:9F:10:00:93:C6'},
+  'ipcam.garage' :  { 'ip' : '', 'mac' : 'A0:9F:10:01:30:D2'},
+  'ipcam.kitchen' : {'ip' : '', 'mac' : 'A0:9F:10:01:30:D8'},
+  'ipcam.street' : {'ip' : '', 'mac' : '9C:A3:A9:6A:87:5B'}
+}
 
 
 def progressbar(it, prefix="", size=60, file=sys.stdout):
@@ -81,6 +81,7 @@ def update_hosts():
             log_print("motion nvr :: ip-mac's found")
             log_print(ip_mac)
             for cam, attr in cams.items():
+                cams[cam]['ip'] = '' # clean ips to only update what changed
                 for ip, mac in zip(ips, macs):
                     # compare only the last 3 groups of hex values
                     # since the repeater may have changed the first 3 groups
@@ -101,7 +102,7 @@ def update_hosts():
                 for line in fhosts:
                     _, hostname = re.findall('(\S+)\s+(\S+)', line)[0] # ip, hostname
                     hostname = hostname.strip()
-                    if hostname in cams:
+                    if hostname in cams and cams[hostname]['ip'] != '': # only update ip's that changed
                         #print(hostname+' '*4+cams[hostname]['ip'])
                         f.write(cams[hostname]['ip']+' '*4+hostname+'\n')
                     else:
