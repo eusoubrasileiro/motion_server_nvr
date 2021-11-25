@@ -120,9 +120,9 @@ def update_hosts():
 
 
 
-def recover_space(space_max=350, perc_pics=5, perc_vids=5):
+def recover_space(space_max=550, perc_pics=5, perc_vids=5):
     """run cleanning motion folders files reclaiming space used (older files first)
-    * space_max : float (default 300 GB)
+    * space_max : float (default 550 GB)
         maximum folder size in GB
     * perc_pics : float 
         percentage of space_max to reclaim from the pictures folder
