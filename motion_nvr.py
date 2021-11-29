@@ -240,8 +240,8 @@ def pause_detection(bool=True):
     cmd = 'pause' if bool else 'start'
     while True:
         try: # start/pause motion detection
-            for i in range(1,4):
-                requests.get('http://localhost:8088/'+str(i)+'/detection/'+cmd)
+            for i in range(len(cams)):
+                requests.get('http://localhost:8088/'+str(i+1)+'/detection/'+cmd)
             if not motion_detection() == bool:
                 break
         except Exception as e:
