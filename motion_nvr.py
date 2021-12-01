@@ -3,7 +3,6 @@ import subprocess
 import threading as th
 import traceback
 import sys, os, re
-import requests
 import argparse
 from pathlib import Path
 
