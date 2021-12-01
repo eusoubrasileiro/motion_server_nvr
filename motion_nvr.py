@@ -1,4 +1,4 @@
-import time, datetime 
+import time 
 import subprocess
 import threading as th
 import traceback
@@ -219,41 +219,6 @@ def set_motion_config(dir_motion_data, dir_home):
         file.write(content)
 
 
-regstat = re.compile('status (\w+)')
-def motion_detection():
-    """return detection status for all cameras
-    True if all active False otherwise"""
-    while True:
-        try:
-            log_print("motion nvr :: getting detection status")
-            res = requests.get("http://localhost:8088/0/detection/status").content.decode()
-            for cam_status in regstat.findall(res):
-                if cam_status != 'ACTIVE':
-                    return False
-            return True
-        except:
-            time.sleep(1)
-            continue
-
-def pause_detection(bool=True):
-    "True to pause all detection False to start detection'"
-    cmd = 'pause' if bool else 'start'
-    while True:
-        try: # start/pause motion detection
-            for i in range(len(cams)):
-                requests.get('http://localhost:8088/'+str(i+1)+'/detection/'+cmd)
-            if not motion_detection() == bool:
-                break
-        except Exception as e:
-            log_print("motion nvr :: could not set detection parameter yet - exception: ", e)
-            log_print("motion nvr :: could not set detection parameter yet - waiting")
-            time.sleep(1)
-            continue # try again
-        else:
-            log_print("motion nvr :: motion detection ", "paused" if cmd=="pause" else "restarted")
-            return False if cmd=="pause" else True # detection status
-
-
 def main():
     log_print('motion nvr :: starting system :: pid :', os.getpid())
     kill_python_nvr()
@@ -268,13 +233,6 @@ def main():
             kill_motion() # just to make sure
             proc_motion = start_motion()
             background_print_motion_logs(proc_motion)  # 2 threads running on background printing motion log messages
-        else: # running
-            if not motion_detection():
-                if datetime.datetime.now().time() > datetime.time(hour=20) or datetime.datetime.now().time() < datetime.time(hour=6):
-                    pause_detection(False)
-            else: # detection running
-                if datetime.datetime.now().time() < datetime.time(hour=20) and datetime.datetime.now().time() > datetime.time(hour=6):
-                    pause_detection()
         time.sleep(15*60) # every 15 minutes only
         recover_space()    # should also clean log-file once in a while to not make it huge
         update_hosts()
