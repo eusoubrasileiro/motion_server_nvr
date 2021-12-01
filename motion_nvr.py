@@ -22,10 +22,10 @@ lock = th.Lock()
 # hostnames cannot have _ underscore in its name
 # https://stackoverflow.com/questions/3523028/valid-characters-of-a-hostname
 # givin errors systemd-resolved 
-cams = {'ipcam.frontwall' : {'ip' : '', 'mac' : 'A0:9F:10:00:93:C6'},
-  'ipcam.garage' :  { 'ip' : '', 'mac' : 'A0:9F:10:01:30:D2'},
-  'ipcam.kitchen' : {'ip' : '', 'mac' : 'A0:9F:10:01:30:D8'},
-  'ipcam.street' : {'ip' : '', 'mac' : '9C:A3:A9:6A:87:5B'}
+cams = {'ipcam.frontwall' : {'ip' : '', 'mac' : 'A0:9F:10:00:93:C6', 'name' : 'frontwall'},
+  'ipcam.garage' :  { 'ip' : '', 'mac' : 'A0:9F:10:01:30:D2', 'name' : 'garage'},
+  'ipcam.kitchen' : {'ip' : '', 'mac' : 'A0:9F:10:01:30:D8', 'name' : 'kitchen'},
+  'ipcam.street' : {'ip' : '', 'mac' : '9C:A3:A9:6A:87:5B', 'name' : 'street'}
 }
 
 
@@ -148,6 +148,10 @@ def recover_space(space_max=550, perc_pics=5, perc_vids=5):
     if space_usage >= 0.95*space_max:
         clean_old_files(config['motion_pictures_path'], perc_pics) # remove % of oldest pictures
         clean_old_files(config['motion_movies_path'], perc_vids) # remove % of oldest movies
+        for _, attr in cams.items(): # folder of each camera for events 
+            clean_old_files(os.path.join(config['motion_movies_path'], 'cam_'+attr['name']), perc_vids)
+
+
 
 def psrunning_byname(name_contains):
     """return list of pid's of running processes or [] empty if not running
