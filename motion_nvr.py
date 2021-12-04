@@ -1,10 +1,11 @@
 import time 
-import subprocess
-import threading as th
 import traceback
-import sys, os, re
+import subprocess
+import sys, os, re, io 
 import argparse
-from pathlib import Path
+import threading as th
+import numpy as np 
+
 
 # recommended approach dict as global
 config = { 'home' : None,  # must be full path since a service is run by root
@@ -16,7 +17,6 @@ config = { 'home' : None,  # must be full path since a service is run by root
 
 lock = th.Lock()
 # only need to lock when printing on main or background threads
-
 
 # hostnames cannot have _ underscore in its name
 # https://stackoverflow.com/questions/3523028/valid-characters-of-a-hostname
@@ -118,39 +118,30 @@ def update_hosts():
           return True
 
 
-
-def recover_space(space_max=550, perc_pics=5, perc_vids=5):
+def recover_space(space_max=550):
     """run cleanning motion folders files reclaiming space used (older files first)
     * space_max : float (default 550 GB)
         maximum folder size in GB
-    * perc_pics : float 
-        percentage of space_max to reclaim from the pictures folder
-    * perc_vids : float
-        percentage of space_max to reclaim from the video folder
     """
-    def clean_old_files(path='.', percent=5):        
-        files  = subprocess.check_output(['ls', '-t', path]).decode().split('\n') # -t younger first        
-        ndelete = int(len(files)*percent/100.) # number of files to remove        
-        files = files[::-1][:ndelete] # get oldest first
-        log_print('motion nvr :: cleaning ', percent, ' percent files. Deleting: ', ndelete, ' files')
-        for cfile in progressbar(files, "deleting old files: ", 50):
-            cfile_path = os.path.join(path, cfile)
-            if os.path.exists(cfile_path) and os.path.isfile(cfile_path):
-                os.remove(cfile_path)
-
-    def folder_size(folder: str) -> float:
-        """folder size in GB"""
-        return sum(p.stat().st_size for p in Path(folder).rglob('*'))/(1024**3)
-
-    space_usage = folder_size(config['storage_path'])
+    storage_path = config['storage_path'] #'/mnt/motion_data'    
+    result = subprocess.run(r"find " + storage_path + r" -type f -printf '%T@;;%p;;%s\n'", 
+        capture_output=True, text=True, shell=True, universal_newlines=True)        
+    data = np.loadtxt(io.StringIO(result.stdout), dtype=[('age', '<f8'),('path', 'U200'), ('size', 'i8')], delimiter=';;')
+    data.sort(order='age') # big numbers last means younger files last
+    data = data[::-1] #  (reverse it)
+    space_max = space_max*1024**3 # maximum size to bytes    
+    sizes = np.cumsum(data['size']) # cumulative folder size starting with younger ones
+    space_usage = sizes[-1]
     log_print('motion nvr :: data folder size is {:.2f}  GiB'.format(space_usage))
-    if space_usage >= 0.95*space_max:
-        clean_old_files(config['motion_pictures_path'], perc_pics) # remove % of oldest pictures
-        clean_old_files(config['motion_movies_path'], perc_vids) # remove % of oldest movies
-        for _, attr in cams.items(): # folder of each camera for events 
-            clean_old_files(os.path.join(config['motion_movies_path'], 'cam_'+attr['name']), perc_vids)
+    if space_usage >= 0.95*space_max : # only if folder bigger than maxsize 
+        del_start = np.argmax(sizes > 0.95*space_max) # index where deleting should start             
+        log_print('motion nvr :: cleaning ', 5, ' percent files. Deleting: ', len(sizes)-del_start, ' files')        
+        for path in progressbar(data['path'][del_start:], "deleting old files: ", 50):            
+            os.remove(path)
 
-
+    # python pathlib or os is 1000x slower than find 
+    # find saving timestamp, paths of files and size (recursive)
+    # find /mnt/motion_data/pictures -type f -printf '%T@;;%p;;%s\n' 
 
 def psrunning_byname(name_contains):
     """return list of pid's of running processes or [] empty if not running
