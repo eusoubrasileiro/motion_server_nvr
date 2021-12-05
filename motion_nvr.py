@@ -119,9 +119,9 @@ def update_hosts():
           return True
 
 
-def recover_space(space_max=550):
+def recover_space(space_max=570):
     """run cleanning motion folders files reclaiming space used (older files first)
-    * space_max : float (default 550 GB)
+    * space_max : float (default 570 of 590 GB)
         maximum folder size in GB
     """
     storage_path = config['storage_path'] #'/mnt/motion_data'    
@@ -134,9 +134,9 @@ def recover_space(space_max=550):
     sizes = np.cumsum(data['size']) # cumulative folder size starting with younger ones
     space_usage = sizes[-1]
     log_print('motion nvr :: data folder size is {:.2f}  GiB'.format(space_usage/(1024**3)))
-    if space_usage >= 0.95*space_max : # only if folder bigger than maxsize 
-        del_start = np.argmax(sizes > 0.95*space_max) # index where deleting should start             
-        log_print('motion nvr :: cleaning ', 5, ' percent files. Deleting: ', len(sizes)-del_start, ' files')        
+    if space_usage >= space_max : # only if folder bigger than maxsize 
+        del_start = np.argmax(sizes >= space_max) # index where deleting should start             
+        log_print('motion nvr :: recovering space. Deleting: ', len(sizes)-del_start, ' files')        
         for path in progressbar(data['path'][del_start:], "deleting old files: ", 50):            
             os.remove(path)
 
