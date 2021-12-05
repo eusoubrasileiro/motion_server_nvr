@@ -1,3 +1,4 @@
+#!/home/andre/python38/bin/python
 import time 
 import traceback
 import subprocess
@@ -132,7 +133,7 @@ def recover_space(space_max=550):
     space_max = space_max*1024**3 # maximum size to bytes    
     sizes = np.cumsum(data['size']) # cumulative folder size starting with younger ones
     space_usage = sizes[-1]
-    log_print('motion nvr :: data folder size is {:.2f}  GiB'.format(space_usage))
+    log_print('motion nvr :: data folder size is {:.2f}  GiB'.format(space_usage/(1024**3)))
     if space_usage >= 0.95*space_max : # only if folder bigger than maxsize 
         del_start = np.argmax(sizes > 0.95*space_max) # index where deleting should start             
         log_print('motion nvr :: cleaning ', 5, ' percent files. Deleting: ', len(sizes)-del_start, ' files')        
@@ -217,7 +218,8 @@ def main():
     log_print('motion nvr :: starting system :: pid :', os.getpid())
     kill_python_nvr()
     kill_motion()
-    recover_space()    # should also clean log-file once in a while to not make it huge
+    # takes almost forever to compute disk usage size so put on another thread
+    th.Thread(target=recover_space).start() # should also clean log-file once in a while to not make it huge    
     update_hosts()
     proc_motion = start_motion()
     background_print_motion_logs(proc_motion)  # 2 threads running on background printing motion log messages
@@ -228,7 +230,7 @@ def main():
             proc_motion = start_motion()
             background_print_motion_logs(proc_motion)  # 2 threads running on background printing motion log messages
         time.sleep(15*60) # every 15 minutes only
-        recover_space()    # should also clean log-file once in a while to not make it huge
+        recover_space() # should also clean log-file once in a while to not make it huge  
         update_hosts()
 
 def main_wrapper():
