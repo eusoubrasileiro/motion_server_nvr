@@ -33,7 +33,7 @@ git reset --hard
 git config --global user.email aflopes7@gmail.com
 git config --global user.name eusoubrasileiro
 # apply the patch finally.
-git am <  ~/motion_server_nvr/ffmpeg_build/RTSP_LOWER_TRANSPORT_TCP-Yoose-Ip-Camera-Fix.path
+git am <  ../RTSP_LOWER_TRANSPORT_TCP-Yoose-Ip-Camera-Fix.path
 
 make clean 
 
@@ -41,7 +41,7 @@ make clean
 if [ "`uname -m`" = "x86_64" ] ; then 
   ./configure --disable-outdevs  --disable-indevs   \
   --enable-shared --prefix=/usr/local --extra-libs="-lpthread -lm" \
-  --ld="g++" CFLAGS="-pthread"
+  --ld="g++" --extra-cflags="-pthread"
   # --prefix=/usr/local is the default for real linux let it be
 fi
 
