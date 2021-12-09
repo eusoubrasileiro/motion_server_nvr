@@ -1,0 +1,33 @@
+From 13da5695a9732ae5d56fff33db5f09830d55fd8d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andr=C3=A9?= <eusoubrasileiro@gmail.com>
+Date: Sun, 11 Apr 2021 20:40:37 -0300
+Subject: [PATCH] Patch RTSP_LOWER_TRANSPORT_TCP - Yoose Ip Camera Fix
+
+Makes ffmpeg more forgiving when xx is ommited RTP/AVP/xx in 'Transport:' line response to a SETUP request.
+- assuming by now it was meant to be RTP/AVP/TCP
+This fixes my Yoosee W camera problem of not being able to connect.
+---
+ libavformat/rtsp.c | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/libavformat/rtsp.c b/libavformat/rtsp.c
+index 5d8491b..3b406e8 100644
+--- a/libavformat/rtsp.c
++++ b/libavformat/rtsp.c
+@@ -932,7 +932,12 @@ static void rtsp_parse_transport(AVFormatContext *s,
+             }
+             th->transport = RTSP_TRANSPORT_RAW;
+         }
+-        if (!av_strcasecmp(lower_transport, "TCP"))
++        /* will need to replace with logcat call on android */
++        printf("RTSP_LOWER_TRANSPORT_TCP Patch Applied\n"); /* RTSPTransportField */
++        /* making ffmpeg forgiving when TCP is omitted - Yoose Ip Camera Fix*/
++        /* assuming it was missing it but ... better compare with original request
++        to see it is the same lower_transport */
++        if (!av_strcasecmp(lower_transport, "TCP") || !av_strcasecmp(lower_transport, ""))
+             th->lower_transport = RTSP_LOWER_TRANSPORT_TCP;
+         else
+             th->lower_transport = RTSP_LOWER_TRANSPORT_UDP;
+-- 
+2.25.1
+
