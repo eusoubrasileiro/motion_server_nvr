@@ -119,9 +119,9 @@ def update_hosts():
           return True
 
 
-def recover_space(space_max=570):
+def recover_space(space_max=550):
     """run cleanning motion folders files reclaiming space used (older files first)
-    * space_max : float (default 570 of 590 GB)
+    * space_max : float (default 550 of 590 GB)
         maximum folder size in GB
     """
     storage_path = config['storage_path'] #'/mnt/motion_data'    
@@ -144,44 +144,6 @@ def recover_space(space_max=570):
     # find saving timestamp, paths of files and size (recursive)
     # find /mnt/motion_data/pictures -type f -printf '%T@;;%p;;%s\n' 
 
-def psrunning_byname(name_contains):
-    """return list of pid's of running processes or [] empty if not running
-    if str.name contains"""
-    # ignore last command that's ps itself
-    cmd = ['ps', '-eo', 'pid,cmd']
-    pss = subprocess.check_output(cmd).decode().split('\n')[1:-2]
-    # 'ps -eo pid,cmd' format specifiers to see ps with
-    # only pid and command
-    pids = []
-    for ps in pss:
-        if ps.find(name_contains) != -1:
-          pid = int(re.findall('\d{3,}', ps)[0]) #PID
-          pids.append(pid)
-    return pids
-
-def kill_byname(name_contains, current_pid=os.getpid()):
-    pids = psrunning_byname(name_contains)   
-    while pids:
-        for pid in pids:
-            if pid == current_pid:  # self motion pid
-                if len(pids) == 1: # only self running - everybody else dead
-                    return 
-                continue # prevent suicide            
-            # try to kill as many times as needed                        
-            os.system('kill '+ str(pid))
-            log_print("motion nvr :: killed by name contains: ", name_contains, " and pid: ", pid)     
-        pids = psrunning_byname(name_contains)   
-
-def is_running_motion():
-    if psrunning_byname('motiond'):
-      return True
-    return False
-
-def kill_motion():
-    kill_byname('motiond')
-
-def kill_python_nvr():
-    kill_byname('motion_nvr.py')
 
 def start_motion():
     log_print('motion nvr :: starting motion')
@@ -216,19 +178,12 @@ def set_motion_config(dir_motion_data, dir_home):
 
 def main():
     log_print('motion nvr :: starting system :: pid :', os.getpid())
-    kill_python_nvr()
-    kill_motion()
     # takes almost forever to compute disk usage size so put on another thread
     th.Thread(target=recover_space).start() # should also clean log-file once in a while to not make it huge    
     update_hosts()
     proc_motion = start_motion()
     background_print_motion_logs(proc_motion)  # 2 threads running on background printing motion log messages
     while True:
-        if not is_running_motion(): # check if motion is running
-            # time to re-start motion
-            kill_motion() # just to make sure
-            proc_motion = start_motion()
-            background_print_motion_logs(proc_motion)  # 2 threads running on background printing motion log messages
         time.sleep(15*60) # every 15 minutes only
         recover_space() # should also clean log-file once in a while to not make it huge  
         update_hosts()
@@ -238,10 +193,7 @@ def main_wrapper():
         main()
     except Exception as e:
         log_print("motion nvr :: Python exception")
-        log_print(e)
-        log_print("motion nvr :: restarting")
-        kill_motion() # kill what's left 
-        main_wrapper()
+        log_print(traceback.format_exc())
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Start Motion NVR Server')
