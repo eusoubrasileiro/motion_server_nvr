@@ -33,7 +33,7 @@ git reset --hard
 git config --global user.email aflopes7@gmail.com
 git config --global user.name eusoubrasileiro
 # apply the patch finally.
-git am <  ../RTSP_LOWER_TRANSPORT_TCP-Yoose-Ip-Camera-Fix.path
+git am <  ../RTSP_LOWER_TRANSPORT_TCP-Yoose-Ip-Camera-Fix.patch
 
 make clean 
 
