@@ -29,20 +29,6 @@ cams = {'ipcam.frontwall' : {'ip' : '', 'mac' : 'A0:9F:10:00:93:C6', 'name' : 'f
 }
 
 
-def progressbar(it, prefix="", size=60, file=sys.stdout):
-    count = len(it)
-    def show(j):
-        x = int(size*j/count)
-        file.write("%s[%s%s] %i/%i\r" % (prefix, "#"*x, "."*(size-x), j, count))
-        file.flush()
-    show(0)
-    for i, item in enumerate(it):
-        yield item
-        show(i+1)
-    file.write("\n")
-    file.flush()
-
-
 def log_print(*args, **kwargs):
     with lock:    
         print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)), file=config['log_file'],**kwargs)
@@ -137,7 +123,7 @@ def recover_space(space_max=550):
     if space_usage >= space_max : # only if folder bigger than maxsize 
         del_start = np.argmax(sizes >= space_max) # index where deleting should start             
         log_print('motion nvr :: recovering space. Deleting: ', len(sizes)-del_start, ' files')        
-        for path in progressbar(data['path'][del_start:], "deleting old files: ", 50):            
+        for path in data['path'][del_start:]:            
             os.remove(path)
 
     # python pathlib or os is 1000x slower than find 
