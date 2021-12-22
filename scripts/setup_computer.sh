@@ -48,15 +48,15 @@ echo "All code is in setup_computer.sh"
 # options edns0 trust-ad' > /etc/resolv.conf"
 # sudo systemctl stop dnsmasq
 # sudo systemctl start dnsmasq
-## all names on /etc/hosts will be served 
-## by dnsmasq
-## so you can use arp-scan -localnet 
-## to update then by mac-adress
+# all names on /etc/hosts will be served 
+# by dnsmasq
+# so you can use arp-scan -localnet 
+# to update then by mac-adress
 
 #mount share folder archer c7 usb external hd for uid,gid andre
-if [ ! -d /mnt/data  ]; then
-    sudo mkdir /mnt/data 
-    sudo chown andre:andre /mnt/data 
+if [ ! -d /mnt/motion_data  ]; then
+    sudo mkdir /mnt/motion_data 
+    sudo chown andre:andre /mnt/motion_data 
 fi 
 grep -q '192.168.0.1' /etc/fstab || 
-printf '//192.168.0.1/sda1 /mnt/motion_data cifs rw,guest,uid=1000,gid=1000,vers=1.0  0 1\n' >> /etc/fstab
+printf '//192.168.0.1/sda1   /mnt/motion_data      cifs       rw,user,nofail,uid=1000,gid=1000,vers=1.0              0 1\n' >> /etc/fstab

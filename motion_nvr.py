@@ -1,4 +1,4 @@
-#!/home/andre/python38/bin/python
+#!/usr/bin/python3
 import time 
 import traceback
 import subprocess
