@@ -3,8 +3,7 @@
 # sudo apt-get install lm-sensors
 
 sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -yfq --no-install-recommends \
-  hddtemp lm-sensors tmux python3 python3-pip \
-  curl htop cifs-utils
+  tmux python3 python3-pip curl htop cifs-utils
   
 # To avoid sudo everywhere on python nvr script
 # Change owenership of /etc/hosts so default user python can write over it 
