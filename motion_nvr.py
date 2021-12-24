@@ -2,7 +2,7 @@
 import time 
 import traceback
 import subprocess
-import sys, os, re, io 
+import os, re, io 
 import argparse
 import threading as th
 import numpy as np 
@@ -112,7 +112,7 @@ def recover_space(space_max=550):
     """
     storage_path = config['storage_path'] #'/mnt/motion_data'    
     result = subprocess.run(r"find " + storage_path + r" -type f -printf '%T@;;%p;;%s\n'", 
-        capture_output=True, text=True, shell=True, universal_newlines=True)        
+        stdout=subprocess.PIPE, shell=True, universal_newlines=True)        
     data = np.loadtxt(io.StringIO(result.stdout), dtype=[('age', '<f8'),('path', 'U200'), ('size', 'i8')], delimiter=';;')
     data.sort(order='age') # big numbers last means younger files last
     data = data[::-1] #  (reverse it)
