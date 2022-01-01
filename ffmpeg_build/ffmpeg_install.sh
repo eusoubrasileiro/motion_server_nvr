@@ -1,52 +1,37 @@
 #!/bin/bash
 
-sudo apt-get update -qq && DEBIAN_FRONTEND=noninteractive sudo apt-get install -yfq --no-install-recommends \
-  autoconf \
-  automake \
-  build-essential \
-  pkg-config \
-  yasm  \
-  wget \
-  unzip \
-  libv4l-dev \
-  libv4l-0 \
-  i965-va-driver \
-  libvdpau-dev \
-  ninja-build  \
-  libva-dev \
-  libva2 \
-  libmfx-dev \
-  libvdpau-dev \
-  libvorbis-dev \
-  v4l2loopback-dkms # support hevc_qs intel hardware decoding h265
-# libv4l-dev libv4l-0  for video4linux decoders/encoders
+# Custom ffmpeg for jetson nano 
+# 1.build and install library
+git clone https://github.com/jocover/jetson-ffmpeg.git
+cd jetson-ffmpeg
+mkdir build
+cd build
+cmake ..
+make
+sudo make install
+sudo ldconfig
 
-if [ ! -d "FFmpeg" ]; then # only if not cloned
-  git clone --depth 1 --branch release/4.4 https://github.com/FFmpeg/FFmpeg.git
-fi
+# 2.patch ffmpeg 
+git clone git://source.ffmpeg.org/ffmpeg.git -b release/4.2 --depth=1
+cd ffmpeg
+wget https://github.com/jocover/jetson-ffmpeg/raw/master/ffmpeg_nvmpi.patch
+git apply ffmpeg_nvmpi.patch
 
-cd FFmpeg
-git reset --hard 
-# Applying the patch: git apply --stat file.patch # show stats. 
-# git apply --check file.patch # check for error before applying. 
-# git am < file.patch # apply the patch finally.
-git config --global user.email aflopes7@gmail.com
-git config --global user.name eusoubrasileiro
-# apply the patch finally.
-git am <  ../RTSP_LOWER_TRANSPORT_TCP-Yoose-Ip-Camera-Fix.patch
+# Add my cystom patch 
+patch -p1 < ../RTSP_LOWER_TRANSPORT_TCP-Yoose-Ip-Camera-Fix.patch
 
 make clean 
+#  compiling jetson nano 
+./configure --disable-outdevs  --disable-indevs --enable-nvmpi \
+--enable-shared --prefix=/usr/local #is the default for real linux let it be
 
-#  compiling on linux not android
-if [ "`uname -m`" = "x86_64" ] ; then 
-  ./configure --disable-outdevs  --disable-indevs   \
-  --enable-shared --prefix=/usr/local --extra-libs="-lpthread -lm" \
-  --ld="g++" --extra-cflags="-pthread"
-  # --prefix=/usr/local is the default for real linux let it be
-fi
-
-sudo make -j$(nproc)
+make -j$(nproc)
 sudo make install 
+
+# testing  hevc_nvmpi decoder 
+#./ffmpeg -v quiet -stats -rtsp_transport tcp -y -c:v  hevc_nvmpi -i rtsp://user:pass@ipcam.kitchen:554/onvif2 -f null -
+# working perfectly after install  only progress with -v quiet -stats
+# less image smearing/tearing errors etc.. 
 
 echo "LD_LIBRARY_PATH=/usr/local/lib
 export LD_LIBRARY_PATH" >> ~/.bashrc
