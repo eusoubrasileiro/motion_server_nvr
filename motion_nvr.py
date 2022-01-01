@@ -125,7 +125,7 @@ def recover_space(space_max=550):
         log_print('motion nvr :: recovering space. Deleting: ', len(sizes)-del_start, ' files')        
         for path in data['path'][del_start:]:            
             os.remove(path)
-
+    subprocess.run("find . -type d -empty -delete", shell=True) # delete empty folders
     # python pathlib or os is 1000x slower than find 
     # find saving timestamp, paths of files and size (recursive)
     # find /mnt/motion_data/pictures -type f -printf '%T@;;%p;;%s\n' 
