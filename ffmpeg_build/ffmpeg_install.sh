@@ -18,20 +18,24 @@ wget https://github.com/jocover/jetson-ffmpeg/raw/master/ffmpeg_nvmpi.patch
 git apply ffmpeg_nvmpi.patch
 
 # Add my cystom patch 
-patch -p1 < ../RTSP_LOWER_TRANSPORT_TCP-Yoose-Ip-Camera-Fix.patch
+patch -p1 < ../RTSP_lower_transport_TCP.patch
 
 make clean 
 #  compiling jetson nano 
 ./configure --disable-outdevs  --disable-indevs --enable-nvmpi \
 --enable-shared --prefix=/usr/local #is the default for real linux let it be
 
+# debbuging version
+#./configure --enable-shared --disable-static --disable-optimizations \
+#--disable-mmx --disable-stripping --enable-nvmpi --prefix=/usr/local
+
 make -j$(nproc)
 sudo make install 
 
 # testing  hevc_nvmpi decoder 
 #./ffmpeg -v quiet -stats -rtsp_transport tcp -y -c:v  hevc_nvmpi -i rtsp://user:pass@ipcam.kitchen:554/onvif2 -f null -
-# working perfectly after install  only progress with -v quiet -stats
-# less image smearing/tearing errors etc.. 
+# Working perfectly after install. To show only progress use -v quiet -stats
+# less image smearing/tearing errors etc..  it seams
 
 echo "LD_LIBRARY_PATH=/usr/local/lib
 export LD_LIBRARY_PATH" >> ~/.bashrc

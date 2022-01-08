@@ -16,17 +16,9 @@ fi
 
 cd motion-release-4.4.0/ && autoreconf -fiv 
 
-# compiling on a chroot linux android
-if [ "`uname -m`" = "aarch64" ] ; then
-    ./configure --without-mysql --without-mariadb -without-pgsql \
-    --without-sqlite3 CFLAGS='-g -O3 -ftree-vectorize -mcpu=cortex-a53 -march=armv8-a+crypto+crc+simd'
-fi
-#  compiling on real linux not android
-if [ "`uname -m`" = "x86_64" ] ; then
-    ./configure --without-mysql --without-mariadb -without-pgsql \
-    --without-sqlite3 CFLAGS='-I/usr/local/include' \
-    LDFLAGS='-L/usr/local/lib'
-fi
+./configure --without-mysql --without-mariadb -without-pgsql \
+--without-sqlite3 CFLAGS='-I/usr/local/include -g' LDFLAGS='-L/usr/local/lib'
+# CFLAGS with -g option is debbuging
 
 make -j$(nproc)
 
