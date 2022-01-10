@@ -17,8 +17,9 @@ fi
 cd motion-release-4.4.0/ && autoreconf -fiv 
 
 ./configure --without-mysql --without-mariadb -without-pgsql \
---without-sqlite3 CFLAGS='-I/usr/local/include -g' LDFLAGS='-L/usr/local/lib'
+--without-sqlite3 CFLAGS='-g' --with-ffmpeg=/usr/local  # CFLAGS,LDFLAGS replaced by --with-ffmpeg
 # CFLAGS with -g option is debbuging
+
 
 make -j$(nproc)
 
