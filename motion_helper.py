@@ -95,7 +95,7 @@ def update_hosts():
           return True
 
 
-def recover_space(space_max=config['space_max']):
+def recover_space(space_max=config['data_size']):
     """run cleanning motion folders files reclaiming space used (older files first)
     * space_max : float (default 550 of 590 GB)
         maximum folder size in GB
