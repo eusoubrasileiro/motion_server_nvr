@@ -1,4 +1,5 @@
-#!/usr/bin/python3
+#!/usr/bin/python3 -u
+# -u is needed to unbuffer print making everything go to syslog instantly 
 import time 
 import traceback
 import subprocess
