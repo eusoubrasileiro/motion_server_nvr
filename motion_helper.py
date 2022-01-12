@@ -1,4 +1,5 @@
-#!/usr/bin/python3
+#!/usr/bin/python3 -u
+# -u is needed to unbuffer print making everything go to syslog instantly 
 import time 
 import traceback
 import subprocess
@@ -145,15 +146,15 @@ def set_motion_config(dir_motion_data, dir_home):
 
 def main():
     try:
-        log_print('motion helper :: starting system :: pid :', os.getpid())
+        log_print('motion helper :: starting')
         # you can read syslog or log messages use events from motion.conf to get when thereis a disconnection or else    
-        while True:
-            time.sleep(15*60) # every 15 minutes only
+        while True:            
             # takes almost forever to compute disk usage size so put on another thread  
-            th.Thread(target=recover_space).start() 
-            # should also clean log-file once in a while to not make it huge          
-            # if I use syslog I dont need
+            th.Thread(target=recover_space).start()             
+            # I use syslog so I dont need to clean up self-made logs
             update_hosts()
+            time.sleep(15*60) # every 15 minutes only
+            # could change to events motion.conf
     except Exception as e:
         log_print("motion helper :: Python exception")
         log_print(traceback.format_exc())
