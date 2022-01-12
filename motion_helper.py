@@ -13,7 +13,8 @@ import numpy as np
 config = { 'home' : None,  # must be full path since a service is run by root
     'storage_path' : None, # target_dir for motion
     'motion_pictures_path' : None,
-    'motion_movies_path' : None
+    'motion_movies_path' : None,
+    'data_size' : 550.
 }
 
 lock = th.Lock()
@@ -94,7 +95,7 @@ def update_hosts():
           return True
 
 
-def recover_space(space_max=550):
+def recover_space(space_max=config['space_max']):
     """run cleanning motion folders files reclaiming space used (older files first)
     * space_max : float (default 550 of 590 GB)
         maximum folder size in GB
@@ -120,12 +121,14 @@ def recover_space(space_max=550):
     # find /mnt/motion_data/pictures -type f -printf '%T@;;%p;;%s\n' 
 
 
-def set_motion_config(dir_motion_data, dir_home):
+def set_motion_config(dir_motion_data, dir_home, data_size):
     """Sets the motion configuration files, paths and log-file:
     * motion_data: str
         sets `config['storage_path']`  -> target_dir (motion.conf)
     * home: str
         sets `config['home']` since this can be run as .service
+    * data_size: float 
+         sets `config['data_size']` maximum size folder to reclaim space
     """
     #if not os.path.isdir(motion_data):
     #    raise Exception("motion_data not a directory")
@@ -133,6 +136,7 @@ def set_motion_config(dir_motion_data, dir_home):
     config['home'] = dir_home    
     config['motion_pictures_path'] = os.path.join(config['storage_path'], 'pictures')
     config['motion_movies_path'] = os.path.join(config['storage_path'], 'movies')     
+    config['data_size'] = data_size
 
     repository_name = 'motion_server_nvr'
     log_print("motion helper :: updating config files")
@@ -162,10 +166,11 @@ def main():
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Motion NVR Helper')
-    parser.add_argument('-d','--data-path', help='Path to store videos and pictures  -> target_dir (motion.conf)', required=True)
+    parser.add_argument('-d','--data-path', help='Path to store videos and pictures (all data) -> target_dir (motion.conf)', required=True)
     parser.add_argument('-s','--server-home', help='Path to home folder from where server will run', required=True)
+    parser.add_argument('-m','--data-size', help='Maximum folder data size in GB to reclaim space (delete old)', required=False, default="550")
     args = parser.parse_args()
-    set_motion_config(args.data_path, args.server_home)    
+    set_motion_config(args.data_path, args.server_home, float(args.data_size))    
     main()
     
 # rclone mount -vv nvr_remote:sda1 /home/android/nvr_dir --daemon 
