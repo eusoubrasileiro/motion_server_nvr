@@ -1,5 +1,5 @@
 [Unit]
-Description = Motion Network Video Recorder Server Helper
+Description = Motion NVR Helper
 After=network.service
 Wants=network-online.target
 
@@ -8,6 +8,8 @@ User=andre
 Group=www-data
 Restart=always
 ExecStart=/home/andre/motion_server_nvr/motion_helper.py -d /mnt/motion_data -s /home/andre
+StandardOutput=journal+console
+StandardError=journal+console
 
 [Install]
 WantedBy=multi-user.target

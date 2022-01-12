@@ -12,8 +12,7 @@ import numpy as np
 config = { 'home' : None,  # must be full path since a service is run by root
     'storage_path' : None, # target_dir for motion
     'motion_pictures_path' : None,
-    'motion_movies_path' : None,
-    'log_file' : None 
+    'motion_movies_path' : None
 }
 
 lock = th.Lock()
@@ -31,9 +30,8 @@ cams = {'ipcam.frontwall' : {'ip' : '', 'mac' : 'A0:9F:10:00:93:C6', 'name' : 'f
 
 def log_print(*args, **kwargs):
     with lock:    
-        print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)), file=config['log_file'],**kwargs)
-        if kwargs.get('print_stdout', True):    # by default don't print on stdout - since inside tmux and log-file already exists     
-            print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)),**kwargs)
+        # by default print on stdout -> go to syslog     
+        print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)),**kwargs)
 
 
 # repeater is modifying the first values of the mac address
@@ -134,7 +132,6 @@ def set_motion_config(dir_motion_data, dir_home):
     config['home'] = dir_home    
     config['motion_pictures_path'] = os.path.join(config['storage_path'], 'pictures')
     config['motion_movies_path'] = os.path.join(config['storage_path'], 'movies')     
-    config['log_file'] = open(os.path.join(config['home'], 'motionh_log.txt'), 'w') 
 
     repository_name = 'motion_server_nvr'
     log_print("motion helper :: updating config files")
@@ -147,31 +144,27 @@ def set_motion_config(dir_motion_data, dir_home):
 
 
 def main():
-    log_print('motion helper :: starting system :: pid :', os.getpid())
-    # takes almost forever to compute disk usage size so put on another thread
-    th.Thread(target=recover_space).start() # should also clean log-file once in a while to not make it huge    
-    update_hosts()
-    # you can read syslog or log messages use events from motion.conf to get when thereis a disconnection or else    
-    while True:
-        time.sleep(15*60) # every 15 minutes only
-        recover_space() # should also clean log-file once in a while to not make it huge  
-        update_hosts()
-
-
-def main_wrapper():
     try:
-        main()
+        log_print('motion helper :: starting system :: pid :', os.getpid())
+        # you can read syslog or log messages use events from motion.conf to get when thereis a disconnection or else    
+        while True:
+            time.sleep(15*60) # every 15 minutes only
+            # takes almost forever to compute disk usage size so put on another thread  
+            th.Thread(target=recover_space).start() 
+            # should also clean log-file once in a while to not make it huge          
+            # if I use syslog I dont need
+            update_hosts()
     except Exception as e:
         log_print("motion helper :: Python exception")
         log_print(traceback.format_exc())
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Motion NVR Server Helper')
+    parser = argparse.ArgumentParser(description='Motion NVR Helper')
     parser.add_argument('-d','--data-path', help='Path to store videos and pictures  -> target_dir (motion.conf)', required=True)
     parser.add_argument('-s','--server-home', help='Path to home folder from where server will run', required=True)
     args = parser.parse_args()
     set_motion_config(args.data_path, args.server_home)    
-    main_wrapper()
+    main()
     
 # rclone mount -vv nvr_remote:sda1 /home/android/nvr_dir --daemon 
