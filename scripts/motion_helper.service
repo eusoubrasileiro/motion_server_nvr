@@ -1,5 +1,5 @@
 [Unit]
-Description = Motion Network Video Recorder Server 
+Description = Motion Network Video Recorder Server Helper
 After=network.service
 Wants=network-online.target
 
