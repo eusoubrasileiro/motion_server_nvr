@@ -35,16 +35,6 @@ def log_print(*args, **kwargs):
         if kwargs.get('print_stdout', True):    # by default don't print on stdout - since inside tmux and log-file already exists     
             print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)),**kwargs)
 
-def background_print_motion_logs(popen_file):
-    def print_output(popen_file):
-        for line in iter(popen_file.readline, ''):
-            log_print(line, end='') # printing to stdout
-        popen_file.close()
-    thout = th.Thread(target=print_output, args=(popen_file.stdout,)) # sons of daemon are daemons
-    therr = th.Thread(target=print_output, args=(popen_file.stderr,))
-    thout.start()
-    therr.start()
-
 
 # repeater is modifying the first values of the mac address
 def update_hosts():
@@ -53,8 +43,8 @@ def update_hosts():
     while True:
         try:
             tries +=1 
-            log_print('motion nvr :: updating /etc/hosts with `ip neighbour show`') 
-            log_print('motion nvr :: current hostname ips')
+            log_print('motion helper :: updating /etc/hosts with `ip neighbour show`') 
+            log_print('motion helper :: current hostname ips')
             for cam, attr in cams.items():
                 log_print("{0:<30} {1:<30} {2:30}".format(cam, attr['ip'], attr['mac']))
 
@@ -64,7 +54,7 @@ def update_hosts():
             ip_mac = re.findall('(\d{3}\.\d{3}\.\d{1,3}\.\d{1,3}).+((?:[0-9a-fA-F]{2}:?){6})', neighbours)
             ips, macs = zip(*ip_mac)
             macs = [ mac.upper() for mac in macs] # make sure all upper-case 
-            log_print("motion nvr :: ip-mac's found")
+            log_print("motion helper :: ip-mac's found")
             log_print(ip_mac)
             for cam, attr in cams.items():
                 cams[cam]['ip'] = '' # clean ips to only update what changed
@@ -74,7 +64,7 @@ def update_hosts():
                     if mac[-8:] == attr['mac'][-8:]:
                         cams[cam]['ip'] = ip
 
-            log_print('motion nvr :: updated hostname ips')
+            log_print('motion helper :: updated hostname ips')
             for cam, attr in cams.items():
                 log_print("{0:<30} {1:<30} {2:30}".format(cam, attr['ip'], attr['mac']))
 
@@ -95,7 +85,7 @@ def update_hosts():
                         f.write(line)
                         #print(line[:-1])
         except Exception:
-          log_print("motion nvr :: update_hosts python exception")
+          log_print("motion helper :: update_hosts python exception")
           log_print(traceback.format_exc())
           time.sleep(1)
           if tries > 3: # try 3 times
@@ -119,10 +109,10 @@ def recover_space(space_max=550):
     space_max = space_max*1024**3 # maximum size to bytes    
     sizes = np.cumsum(data['size']) # cumulative folder size starting with younger ones
     space_usage = sizes[-1]
-    log_print('motion nvr :: data folder size is {:.2f}  GiB'.format(space_usage/(1024**3)))
+    log_print('motion helper :: data folder size is {:.2f}  GiB'.format(space_usage/(1024**3)))
     if space_usage >= space_max : # only if folder bigger than maxsize 
         del_start = np.argmax(sizes >= space_max) # index where deleting should start             
-        log_print('motion nvr :: recovering space. Deleting: ', len(sizes)-del_start, ' files')        
+        log_print('motion helper :: recovering space. Deleting: ', len(sizes)-del_start, ' files')        
         for path in data['path'][del_start:]:            
             os.remove(path)
     subprocess.run("find " + storage_path + " -type d -empty -delete", shell=True) # delete empty folders
@@ -130,12 +120,6 @@ def recover_space(space_max=550):
     # find saving timestamp, paths of files and size (recursive)
     # find /mnt/motion_data/pictures -type f -printf '%T@;;%p;;%s\n' 
 
-
-def start_motion():
-    log_print('motion nvr :: starting motion')
-    # run inside the configuration folder to guarantee those configurations are used
-    return subprocess.Popen('cd /home/andre/motion_server_nvr/motion_config && motiond -d 6', stdout=subprocess.PIPE,
-          stderr=subprocess.PIPE, shell=True, universal_newlines=True)
 
 def set_motion_config(dir_motion_data, dir_home):
     """Sets the motion configuration files, paths and log-file:
@@ -150,10 +134,10 @@ def set_motion_config(dir_motion_data, dir_home):
     config['home'] = dir_home    
     config['motion_pictures_path'] = os.path.join(config['storage_path'], 'pictures')
     config['motion_movies_path'] = os.path.join(config['storage_path'], 'movies')     
-    config['log_file'] = open(os.path.join(config['home'], 'motion_nvr.txt'), 'w') 
+    config['log_file'] = open(os.path.join(config['home'], 'motionh_log.txt'), 'w') 
 
     repository_name = 'motion_server_nvr'
-    log_print("motion nvr :: updating config files")
+    log_print("motion helper :: updating config files")
     # no matter what replaces the config file with passed target_dir
     with open(os.path.join(config['home'], repository_name, 'motion_config', 'motion.conf'), 'r') as file:
         content = file.read()    
@@ -163,26 +147,27 @@ def set_motion_config(dir_motion_data, dir_home):
 
 
 def main():
-    log_print('motion nvr :: starting system :: pid :', os.getpid())
+    log_print('motion helper :: starting system :: pid :', os.getpid())
     # takes almost forever to compute disk usage size so put on another thread
     th.Thread(target=recover_space).start() # should also clean log-file once in a while to not make it huge    
     update_hosts()
-    proc_motion = start_motion()
-    background_print_motion_logs(proc_motion)  # 2 threads running on background printing motion log messages
+    # you can read syslog or log messages use events from motion.conf to get when thereis a disconnection or else    
     while True:
         time.sleep(15*60) # every 15 minutes only
         recover_space() # should also clean log-file once in a while to not make it huge  
         update_hosts()
 
+
 def main_wrapper():
     try:
         main()
     except Exception as e:
-        log_print("motion nvr :: Python exception")
+        log_print("motion helper :: Python exception")
         log_print(traceback.format_exc())
 
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Start Motion NVR Server')
+    parser = argparse.ArgumentParser(description='Motion NVR Server Helper')
     parser.add_argument('-d','--data-path', help='Path to store videos and pictures  -> target_dir (motion.conf)', required=True)
     parser.add_argument('-s','--server-home', help='Path to home folder from where server will run', required=True)
     args = parser.parse_args()
