@@ -95,10 +95,8 @@ def update_hosts():
           return True
 
 
-def recover_space(space_max=config['data_size']):
+def recover_space():
     """run cleanning motion folders files reclaiming space used (older files first)
-    * space_max : float (default 550 of 590 GB)
-        maximum folder size in GB
     """
     storage_path = config['storage_path'] #'/mnt/motion_data'    
     result = subprocess.run(r"find " + storage_path + r" -type f -printf '%T@;;%p;;%s\n'", 
@@ -106,7 +104,7 @@ def recover_space(space_max=config['data_size']):
     data = np.loadtxt(io.StringIO(result.stdout), dtype=[('age', '<f8'),('path', 'U200'), ('size', 'i8')], delimiter=';;')
     data.sort(order='age') # big numbers last means younger files last
     data = data[::-1] #  (reverse it)
-    space_max = space_max*1024**3 # maximum size to bytes    
+    space_max = config['data_size']*1024**3 # maximum size to bytes    
     sizes = np.cumsum(data['size']) # cumulative folder size starting with younger ones
     space_usage = sizes[-1]
     log_print('motion helper :: data folder size is {:.2f}  GiB'.format(space_usage/(1024**3)))
@@ -137,6 +135,11 @@ def set_motion_config(dir_motion_data, dir_home, data_size):
     config['motion_pictures_path'] = os.path.join(config['storage_path'], 'pictures')
     config['motion_movies_path'] = os.path.join(config['storage_path'], 'movies')     
     config['data_size'] = data_size
+
+    log_print("motion helper :: config options")
+
+    for key, value in config.items():
+        log_print(key, value)
 
     repository_name = 'motion_server_nvr'
     log_print("motion helper :: updating config files")
