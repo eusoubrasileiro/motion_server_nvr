@@ -18,7 +18,7 @@ wget https://github.com/jocover/jetson-ffmpeg/raw/master/ffmpeg_nvmpi.patch
 git apply ffmpeg_nvmpi.patch
 
 # Add my cystom patch 
-patch -p1 < ../RTSP_lower_transport_TCP.patch
+patch -p1 < ../../../RTSP_lower_transport_TCP.patch
 
 make clean 
 #  compiling jetson nano 

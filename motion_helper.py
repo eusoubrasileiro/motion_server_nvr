@@ -20,79 +20,12 @@ config = { 'home' : None,  # must be full path since a service is run by root
 lock = th.Lock()
 # only need to lock when printing on main or background threads
 
-# hostnames cannot have _ underscore in its name
-# https://stackoverflow.com/questions/3523028/valid-characters-of-a-hostname
-# givin errors systemd-resolved 
-cams = {'ipcam.frontwall' : {'ip' : '', 'mac' : 'A0:9F:10:00:93:C6', 'name' : 'frontwall'},
-  'ipcam.garage' :  { 'ip' : '', 'mac' : 'A0:9F:10:01:30:D2', 'name' : 'garage'},
-  'ipcam.kitchen' : {'ip' : '', 'mac' : 'A0:9F:10:01:30:D8', 'name' : 'kitchen'},
-  'ipcam.street' : {'ip' : '', 'mac' : '9C:A3:A9:6A:87:5B', 'name' : 'street'}
-}
-
 
 def log_print(*args, **kwargs):
     with lock:    
         # by default print on stdout -> go to syslog     
         print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)),**kwargs)
 
-
-# repeater is modifying the first values of the mac address
-def update_hosts():
-    """not having dns-server or willing to install dd-wrt (dnsmasq) for while"""
-    tries=0
-    while True:
-        try:
-            tries +=1 
-            log_print('motion helper :: updating /etc/hosts with `ip neighbour show`') 
-            log_print('motion helper :: current hostname ips')
-            for cam, attr in cams.items():
-                log_print("{0:<30} {1:<30} {2:30}".format(cam, attr['ip'], attr['mac']))
-
-            # get ips from cameras macs
-            # same as arp-scan -localnet but don't need root
-            neighbours = subprocess.check_output(['ip', 'neighbour', 'show']).decode() 
-            ip_mac = re.findall('(\d{3}\.\d{3}\.\d{1,3}\.\d{1,3}).+((?:[0-9a-fA-F]{2}:?){6})', neighbours)
-            ips, macs = zip(*ip_mac)
-            macs = [ mac.upper() for mac in macs] # make sure all upper-case 
-            log_print("motion helper :: ip-mac's found")
-            log_print(ip_mac)
-            for cam, attr in cams.items():
-                cams[cam]['ip'] = '' # clean ips to only update what changed
-                for ip, mac in zip(ips, macs):
-                    # compare only the last 3 groups of hex values
-                    # since the repeater may have changed the first 3 groups
-                    if mac[-8:] == attr['mac'][-8:]:
-                        cams[cam]['ip'] = ip
-
-            log_print('motion helper :: updated hostname ips')
-            for cam, attr in cams.items():
-                log_print("{0:<30} {1:<30} {2:30}".format(cam, attr['ip'], attr['mac']))
-
-            # update file /etc/hosts ip -> name
-            with open('/etc/hosts', 'r') as f:
-                fhosts = f.readlines()
-            
-            # in case hosts doesnt have cameras hostnames 
-            # this wont add the cameras ips
-            with open('/etc/hosts', 'w') as f: 
-                for line in fhosts:
-                    _, hostname = re.findall('(\S+)\s+(\S+)', line)[0] # ip, hostname
-                    hostname = hostname.strip()
-                    if hostname in cams and cams[hostname]['ip'] != '': # only update ip's that changed
-                        #print(hostname+' '*4+cams[hostname]['ip'])
-                        f.write(cams[hostname]['ip']+' '*4+hostname+'\n')
-                    else:
-                        f.write(line)
-                        #print(line[:-1])
-        except Exception:
-          log_print("motion helper :: update_hosts python exception")
-          log_print(traceback.format_exc())
-          time.sleep(1)
-          if tries > 3: # try 3 times
-              return False
-          continue
-        else:
-          return True
 
 
 def recover_space():
@@ -159,7 +92,6 @@ def main():
             # takes almost forever to compute disk usage size so put on another thread  
             th.Thread(target=recover_space).start()             
             # I use syslog so I dont need to clean up self-made logs
-            update_hosts()
             time.sleep(15*60) # every 15 minutes only
             # could change to events motion.conf
     except Exception as e:
