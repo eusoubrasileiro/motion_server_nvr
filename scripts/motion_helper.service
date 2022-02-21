@@ -8,7 +8,7 @@ Wants=network-online.target
 User=andre
 Group=www-data
 Restart=always
-ExecStart=/home/andre/motion_server_nvr/motion_helper.py -d /mnt/motion_data -s /home/andre -m 550
+ExecStart=/home/andre/motion_server_nvr/motion_helper.py -d /mnt/motion_data -s /home/andre -m 200
 RestartSec=900
 # 15 minutes to restart in crazy failures on booting
 
