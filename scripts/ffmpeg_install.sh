@@ -8,8 +8,7 @@ mkdir build
 cd build
 cmake ..
 make
-sudo make install
-sudo ldconfig
+make install
 
 # 2.patch ffmpeg 
 git clone git://source.ffmpeg.org/ffmpeg.git -b release/4.2 --depth=1
@@ -30,14 +29,14 @@ make clean
 #--disable-mmx --disable-stripping --enable-nvmpi --prefix=/usr/local
 
 make -j$(nproc)
-sudo make install 
+make install
+
+# add a conf with the path of libraries here instead of setting LD_LIBRARY_PATH
+# /etc/ld.so.conf.d
+# ldconfig reads conf files and reloads libraries, kind like that
+ldconfig
 
 # testing  hevc_nvmpi decoder 
-#./ffmpeg -v quiet -stats -rtsp_transport tcp -y -c:v  hevc_nvmpi -i rtsp://user:pass@ipcam.kitchen:554/onvif2 -f null -
+# ffmpeg -v quiet -stats -rtsp_transport tcp -y -c:v  hevc_nvmpi -i rtsp://user:pass@ipcam.kitchen:554/onvif2 -f null -
 # Working perfectly after install. To show only progress use -v quiet -stats
 # less image smearing/tearing errors etc..  it seams
-
-echo "LD_LIBRARY_PATH=/usr/local/lib
-export LD_LIBRARY_PATH" >> ~/.bashrc
-
-source ~/.bashrc

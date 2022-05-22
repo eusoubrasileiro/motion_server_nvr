@@ -1,0 +1,5 @@
+---
+- name: Install Motion NVR Server
+  hosts: jnano
+  roles:
+    - jnano

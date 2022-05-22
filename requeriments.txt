@@ -1,1 +1,0 @@
-# must update to python 3.6.9 jetson nano
