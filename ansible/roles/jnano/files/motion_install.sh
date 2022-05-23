@@ -16,5 +16,5 @@ cd motion-release-4.4.0/ && autoreconf -fiv
 make -j$(nproc)
 
 # copy to /usr/local/bin the compiled binary better use motiond to avoid confusion if default apt-get package is installed
-cp src/motion  /usr/local/bin/motiond
-chmod a+x /usr/local/bin/motiond
+# cp src/motion  /usr/local/bin/motiond
+# chmod a+x /usr/local/bin/motiond

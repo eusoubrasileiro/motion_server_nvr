@@ -7,7 +7,7 @@ Wants=network-online.target
 User=andre
 Group=www-data
 Restart=always
-WorkingDirectory=/home/andre/motion_server_nvr/motion_config
+WorkingDirectory=/usr/local/etc/motion
 ExecStart=/usr/local/bin/motiond -d 7
 
 [Install]

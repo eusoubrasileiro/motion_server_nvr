@@ -1,130 +1,170 @@
 ---
-  - block: 
+- block:
 
-    - name: Upgrade packages
-      apt:
-        upgrade: dist
-        update_cache: yes
-
-    - name: Install packages
-      apt:
-        name: "{{ item }}"
-        state: present
-      loop:
-        - cmake
-        - curl
-        - htop
-        - git 
-        - tmux 
-        - python3.8
-        - nginx 
-        - nginx-extras
-        # motion required
-        - autoconf 
-        - automake 
-        - autopoint
-        - build-essential 
-        - pkgconf 
-        - libtool 
-        - libzip-dev 
-        - libjpeg-dev 
-        - libwebp-dev 
-        - gettext 
-        - libmicrohttpd-dev
-        - unzip 
-
-    - name: Create temporary build directory for ffmpeg and motion build
-      tempfile:
-        state: directory
-        suffix: build
-        register: tmp_dir
-
-    - name: Copy install scripts ffmpeg and motion
-      copy: 
-        src:  "{{ playbook_dir }}/scripts/{{ item }}"
-        dest: "{{ tmp_dir }}/"
-      loop:
-        - ffmpeg_install.sh
-        - motion_install.sh
-        - RTSP_lower_transport_TCP.patch
-
-    # from 'tmp_dir' folder created
-    - name: Build and install ffmpeg 
-      shell: ffmpeg_install.sh 
-      args:
-        chdir: "{{ tmp_dir }}"
-
-    - name: Build and install motion 
-      shell: ffmpeg_install.sh 
-      args:
-        chdir: "{{ tmp_dir }}"
-
-    - name: Mount 15th partition for Motion rec.media ~95GB created by Gparted before
-      ansible.posix.mount:
-        path: /mnt/motion_data
-        src: /dev/mmcblk0p15
-        fstype: ext4
-        state: mounted
-        otps: defaults
-
-    - name: Add ips of network cameras in /etc/hosts
-      lineinfile:
-        path: /etc/hosts
-        state: present
-        line: "{{ item }}"
-      loop:
-        - '#from archer c7 router address reservation && security -> mac binding'
-        - '192.168.0.179   ipcam.street # 9C-A3-A9-6A-87-5B'
-        - '192.168.0.12    ipcam.frontwall # A0-9F-10-00-93-C6'
-        - '192.168.0.11    ipcam.kitchen # A0-9F-10-01-30-D8'
-        - '192.168.0.13    ipcam.garage #A0-9F-10-01-30-D2'
-
-    - name: Install motion *.conf and mask files
-      template: 
-        src: "usr/local/etc/motion/{{ item }}"
-        dest: /usr/local/etc/motion/
-        owner: root
-        group: root
-        mode: 0640
-      loop:
-        - motion.conf
-        - frontwall.conf
-        - garage.conf
-        - kitchen.conf        
-        - street.conf
-        - mask_camera_low.pgm
-        - mask_camera_street.pgm
-        - mask_camera.pgm
-
-    - name: Install motion_helper.py
-      template: 
-        src: usr/bin/motion_helper.py
-        dest: /usr/bin/motion_helper.py
-        owner: root
-        group: root
-        mode: 0755
-
-    - name: Install motion_helper service
-      template: 
-        src: etc/systemd/system/motion_helper.service
-        dest: /etc/systemd/system/motion_helper.service
-
-    - name: Install motion service
-      template: 
-        src: etc/systemd/system/motion.service
-        dest: /etc/systemd/system/motion.service
-
-    - name: Enable motion and nginx services
-      systemd:
-        name: {{ item }}
-        enabled: yes
-        masked: no
-        state: started
-        daemon_reload: yes 
-      loop:
-        - motion_helper
-        - motion
-        - nginx
-
+  - name: Update apt packages
+    apt:
+      update_cache: true
     become: true
-    #ignore_errors: yes 
+
+  - name: Install packages
+    apt:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - tzdata
+      - cmake
+      - curl
+      - htop
+      - git
+      - tmux
+      - python3.8
+      - nginx
+      - nginx-extras
+      # motion required
+      - autoconf
+      - automake
+      - autopoint
+      - build-essential
+      - pkgconf
+      - libtool
+      - libzip-dev
+      - libjpeg-dev
+      - libwebp-dev
+      - gettext
+      - libmicrohttpd-dev
+      - unzip
+    become: true
+
+  # doesnt work for whatever reason
+  # - name: Create temporary build directory for ffmpeg and motion build
+  #   tempfile:
+  #     state: directory
+  #     suffix: build
+  #   register: tmp_dir
+
+  - name: Copy install scripts ffmpeg and motion
+    copy:
+      src: "{{ item }}"
+      dest: "{{ build_folder }}"
+      mode: 0777
+    loop:
+      - ffmpeg_install.sh
+      - motion_install.sh
+      - RTSP_lower_transport_TCP.patch
+
+  - name: Build ffmpeg nvmpi library and ffmpeg
+    shell: "{{ build_folder }}/ffmpeg_install.sh"
+
+  - name: Install ffmpeg nvmpi library and ffmpeg
+    shell: |
+      cd "{{ build_folder }}/jetson-ffmpeg/build"
+      make install
+      ldconfig
+      cd ffmpeg
+      make install
+      ldconfig
+    become: true
+
+  - name: Build motion
+    shell: "{{ build_folder }}/motion_install.sh"
+
+  - name: Install motion
+    shell: |
+      cd "{{ build_folder }}/{{ motion_build_folder }}"
+      cp src/motion  /usr/local/bin/motiond
+      chmod 777 /usr/local/bin/motiond
+    become: true
+
+  - name: Mount 15th partition for Motion rec.media ~95GB (Gparted)
+    ansible.posix.mount:
+      path: /mnt/motion_data
+      src: /dev/mmcblk0p15
+      fstype: ext4
+      opts: "defaults"
+      state: mounted
+    become: true
+
+  # since opts 'user, umask=0000' above is not working
+  - name: chown /etc/motion_data since mount did not work
+    shell: "chown -R andre:andre {{ motion_storage_dir }}"
+    become: true
+
+  - name: Add ips of network cameras in /etc/hosts
+    lineinfile:
+      path: /etc/hosts
+      state: present
+      line: "{{ item }}"
+    loop:
+      - '#from archer c7 router dhcp reservation && security -> mac binding'
+      - '192.168.0.179   ipcam.street # 9C-A3-A9-6A-87-5B'
+      - '192.168.0.12    ipcam.frontwall # A0-9F-10-00-93-C6'
+      - '192.168.0.11    ipcam.kitchen # A0-9F-10-01-30-D8'
+      - '192.168.0.13    ipcam.garage #A0-9F-10-01-30-D2'
+    become: true
+
+  - name: Install motion *.conf and mask files
+    template:
+      src: "usr/local/etc/motion/{{ item }}"
+      dest: /usr/local/etc/motion/
+      owner: andre
+      group: andre
+      mode: 0640
+    loop:
+      - motion.conf
+      - frontwall.conf
+      - garage.conf
+      - kitchen.conf
+      - street.conf
+      - mask_camera_low.pgm
+      - mask_camera_street.pgm
+      - mask_camera.pgm
+    become: true
+
+  - name: Install nginx .conf
+    template:
+      src: "etc/nginx/sites-enabled/{{ item }}"
+      dest: /etc/nginx/sites-enabled/
+      owner: andre
+      group: andre
+      mode: 0640
+    loop:
+      - motion_files.conf
+    become: true
+
+  - name: Install motion_helper.py
+    template:
+      src: usr/bin/motion_helper.py
+      dest: /usr/bin/motion_helper.py
+      owner: andre
+      group: andre
+      mode: 0755
+    become: true
+
+  - name: Install motion_helper service
+    template:
+      src: etc/systemd/system/motion_helper.service
+      dest: /etc/systemd/system/motion_helper.service
+    become: true
+
+  - name: Install motion service
+    template:
+      src: etc/systemd/system/motion.service
+      dest: /etc/systemd/system/motion.service
+    become: true
+
+  - name: Enable and start motion and nginx services
+    systemd:
+      name: "{{ item }}"
+      enabled: true
+      masked: false
+      state: restarted
+      daemon_reload: true
+      force: true
+    loop:
+      - motion_helper
+      - motion
+      - nginx
+    become: true
+
+    #become: true
+    #ignore_errors: yes

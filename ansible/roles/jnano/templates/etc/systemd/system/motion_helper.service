@@ -8,7 +8,7 @@ Wants=network-online.target
 User=andre
 Group=www-data
 Restart=always
-ExecStart=/usr/bin/motion_helper.py -d /mnt/motion_data -s /home/andre -m {{ motion_storage_size }}
+ExecStart=/usr/bin/motion_helper.py -d {{ motion_storage_dir }} -m {{ motion_storage_size }}
 RestartSec=900
 # 15 minutes to restart in crazy failures on booting
 
