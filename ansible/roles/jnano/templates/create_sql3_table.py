@@ -14,16 +14,18 @@ c.execute("CREATE TABLE event ("
 "name TEXT, " # camera name  - could not make work with REAL 
 "start TEXT, " # timestamp date + time 
 "stop TEXT, " # timestamp date + time        
-"src_id INTEGER, " # id number source event
-"npixels INTEGER, " # number of pixels that changed
 "file TEXT, " # name of file     
+"type INTEGER, " # type
+"src_id INTEGER, " # id number source event
+"chgpixels INTEGER, " # number of pixels that changed
 "width INTEGER, " # width in pixels
 "height INTEGER, " # height    
 "motion_width INTEGER, " # width motion area in pixels
 "motion_height INTEGER, " # height 
 "center_x INTEGER, " # center of motion x coordinate
 "center_y INTEGER, " # ... y coordinate
-"threshold INTEGER " # threshold
+"threshold INTEGER, " # threshold
+"fps INTEGER"
 ");") 
 conn.commit()
 
