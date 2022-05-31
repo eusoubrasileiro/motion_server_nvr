@@ -7,12 +7,12 @@ if [ ! -d "motion-release-4.4.0" ]; then # only if not unziped yet
     unzip motion-4.4.zip
 fi
 
-cd motion-release-4.4.0/ && autoreconf -fiv 
+cd motion-release-4.4.0/ && autoreconf -fiv
 
-./configure --without-mysql --without-mariadb -without-pgsql \
---without-sqlite3 CFLAGS='-g' --with-ffmpeg=/usr/local  # CFLAGS,LDFLAGS replaced by --with-ffmpeg
+# in case running again
+make clean 
+./configure --without-mysql --without-mariadb -without-pgsql --with-ffmpeg=/usr/local  # CFLAGS,LDFLAGS replaced by --with-ffmpeg
 # CFLAGS with -g option is debbuging
-
 make -j$(nproc)
 
 # copy to /usr/local/bin the compiled binary better use motiond to avoid confusion if default apt-get package is installed

@@ -3,3 +3,4 @@ build_folder: /home/andre
 motion_storage_size: 90
 motion_storage_dir: /mnt/motion_data
 motion_build_folder: motion-release-4.4.0
+motion_dbfile : motion.sql3

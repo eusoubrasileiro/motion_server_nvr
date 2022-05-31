@@ -1,0 +1,17 @@
+---
+
+- name: Copy sql3 database script
+  template:
+    src: create_sql3_table.py
+    dest: "{{ build_folder }}"
+    mode: 0777
+  tags:
+    - install
+
+- name: Create database sql3lite file
+  shell:
+    cmd: /usr/bin/python3 create_sql3_table.py
+    chdir: "{{ build_folder }}"
+  tags:
+    - install
+
