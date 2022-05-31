@@ -14,9 +14,9 @@ c.execute("CREATE TABLE event ("
 "name TEXT, " # camera name  - could not make work with REAL 
 "start TEXT, " # timestamp date + time 
 "stop TEXT, " # timestamp date + time        
+"src_id INTEGER, " # id number source event
 "file TEXT, " # name of file     
 "type INTEGER, " # type
-"src_id INTEGER, " # id number source event
 "chgpixels INTEGER, " # number of pixels that changed
 "width INTEGER, " # width in pixels
 "height INTEGER, " # height    
