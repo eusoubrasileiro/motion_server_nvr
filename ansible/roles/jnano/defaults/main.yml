@@ -4,21 +4,4 @@ motion_storage_size: 90
 motion_storage_dir: /mnt/motion_data
 motion_build_folder: motion-release-4.4.0
 motion_dbfile : motion.db
-motion_dbkeys : 
-  event_id: INTEGER PRIMARY KEY AUTOINCREMENT
-  cam: INTEGER
-  name: TEXT
-  start: TEXT
-  stop: TEXT
-  src_id: INTEGER
-  file: TEXT
-  chgpixels: INTEGER
-  width: INTEGER
-  height: INTEGER
-  motion_width: INTEGER
-  motion_height: INTEGER
-  center_x: INTEGER
-  center_y: INTEGER
-  threshold: INTEGER
-
   
