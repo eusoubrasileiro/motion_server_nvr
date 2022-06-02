@@ -8,24 +8,25 @@ if os.path.exists(dbpath):
 
 conn = sqlite3.connect(dbpath) 
 c = conn.cursor()
-c.execute("CREATE TABLE event ("
+c.execute("CREATE TABLE events ("
 "event_id INTEGER PRIMARY KEY AUTOINCREMENT, " # id row unique
 "cam INTEGER, " # camera id 
 "name TEXT, " # camera name  - could not make work with REAL 
 "start TEXT, " # timestamp date + time 
 "stop TEXT, " # timestamp date + time        
-"src_id INTEGER, " # id number source event
-"file TEXT, " # name of file     
-"type INTEGER, " # type
-"chgpixels INTEGER, " # number of pixels that changed
+"source INTEGER, "
+"type INTEGER, " # movie file     
+"file TEXT, " # movie file
+"nchange_pixels INTEGER, " # number of pixels that changed
 "width INTEGER, " # width in pixels
 "height INTEGER, " # height    
 "motion_width INTEGER, " # width motion area in pixels
 "motion_height INTEGER, " # height 
-"center_x INTEGER, " # center of motion x coordinate
-"center_y INTEGER, " # ... y coordinate
+"motion_cx INTEGER, " # center of motion x coordinate
+"motion_cy INTEGER, " # ... y coordinate
 "threshold INTEGER, " # threshold
-"fps INTEGER"
+"fps INTEGER, "
+"frame INTEGER "
 ");") 
 conn.commit()
 

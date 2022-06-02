@@ -11,7 +11,6 @@ import numpy as np
 
 # recommended approach dict as global
 config = { 
-    'storage_path' : None, # target_dir for motion
     'motion_pictures_path' : None,
     'motion_movies_path' : None,
     'data_size' : 90.
@@ -36,8 +35,8 @@ def recover_space():
         data = data[::-1] #  (reverse it)
         return data 
     # look at movies and pictures folders, ignoring root due database file there
-    data = np.concatenate(array_files(config['motion_pictures_path']), 
-        array_files(config['motion_movies_path']))
+    data = np.concatenate([ array_files(config['motion_pictures_path']), 
+            array_files(config['motion_movies_path']) ])
     space_max = config['data_size']*1024**3 # maximum size to bytes    
     sizes = np.cumsum(data['size']) # cumulative folder size starting with younger ones
     space_usage = sizes[-1]
@@ -54,17 +53,15 @@ def recover_space():
     # find /mnt/motion_data/pictures -type f -printf '%T@;;%p;;%s\n' 
 
 def set_motion_config(dir_motion_data, data_size):
-    """Sets the motion configuration files, paths and log-file:
+    """Sets the motion configuration files, paths 
     * motion_data: str
         sets `config['storage_path']`  -> target_dir (motion.conf)
     * data_size: float 
          sets `config['data_size']` maximum size folder to reclaim space
     """
-    #if not os.path.isdir(motion_data):
-    #    raise Exception("motion_data not a directory")
-    config['storage_path'] = dir_motion_data
-    config['motion_pictures_path'] = os.path.join(config['storage_path'], 'pictures')
-    config['motion_movies_path'] = os.path.join(config['storage_path'], 'movies')     
+    
+    config['motion_pictures_path'] = os.path.join(dir_motion_data, 'pictures')
+    config['motion_movies_path'] = os.path.join(dir_motion_data, 'movies')     
     config['data_size'] = data_size
 
     log_print("motion helper :: config options")
