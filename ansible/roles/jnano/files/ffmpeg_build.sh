@@ -10,7 +10,7 @@ fi
 # ... patch ffmpeg with nvmpi and my RTSP_lower_transport patch
 cd ffmpeg
 git apply ../jetson-ffmpeg/ffmpeg_nvmpi.patch
-# Add my custom patch 
+# Add my RTSP patch my Yoose trash cameras
 patch -p1 < ../RTSP_lower_transport_TCP.patch
 
 #  compiling jetson nano 

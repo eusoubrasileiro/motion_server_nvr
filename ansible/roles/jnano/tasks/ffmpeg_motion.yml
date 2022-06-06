@@ -6,7 +6,7 @@
   tags:
     - apt
 
-# jetson-ffmpeg requeriment only
+# jetson-ffmpeg only requeriment
 - name: Install nvidia multimedia api
   apt:
     name: "{{ item }}"
@@ -28,7 +28,8 @@
     - htop
     - git
     - tmux
-    - python3.8
+    - python3
+    - python3-numpy
     - nginx
     - nginx-extras
     # motion required
@@ -157,6 +158,10 @@
   tags:
     - config
     - install
+
+- name: Remove default nginx
+  shell: rm /etc/nginx/sites-enabled/default
+  become: true
 
 - name: Install motion_helper.py
   template:

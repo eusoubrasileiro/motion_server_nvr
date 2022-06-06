@@ -9,6 +9,10 @@ fi
 
 cd motion-release-4.4.0/ && autoreconf -fiv
 
+# apply my sqlite3 patch - otherwise sql_query doesnt work
+# github issue https://github.com/Motion-Project/motion/issues/1537
+patch -p1 < ../sqlite3_threadsafe.patch
+
 # in case running again
 make clean 
 ./configure --without-mysql --without-mariadb -without-pgsql --with-ffmpeg=/usr/local  # CFLAGS,LDFLAGS replaced by --with-ffmpeg
