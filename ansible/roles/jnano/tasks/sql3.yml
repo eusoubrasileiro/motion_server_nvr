@@ -10,8 +10,10 @@
 
 - name: Create database sql3lite file
   shell:
-    cmd: /usr/bin/python3 create_sql3_table.py
-    chdir: "{{ build_folder }}"
+    cmd: |
+    /usr/bin/python3 create_sql3_table.py
+    chmod 777 {{ motion_storage_dir }}/{{ motion_dbfile }}
+  chdir: "{{ build_folder }}"
   tags:
     - install
 
