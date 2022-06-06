@@ -3,12 +3,10 @@
   apt:
     update_cache: true
   become: true
+  tags:
+    - apt
 
-# jetson-ffmpeg requeriments
-# not sure what exactly nvmpi (nvidia multimedia api) needs
-# certainly usr/src/jetson_multimedia_api/samples
-# nvidia-l4t-jetson-multimedia-api probably from jetpack
-# deepstream-6.0
+# jetson-ffmpeg requeriment only
 - name: Install nvidia multimedia api
   apt:
     name: "{{ item }}"
@@ -64,31 +62,36 @@
     dest: "{{ build_folder }}"
     mode: 0777
   loop:
-    - ffmpeg_install.sh
-    - motion_install.sh
+    - nvmpi_install.sh
+    - ffmpeg_build.sh    
+    - motion_build.sh    
     - RTSP_lower_transport_TCP.patch
   tags:
     - build
 
-- name: Build ffmpeg nvmpi library and ffmpeg
-  shell: "{{ build_folder }}/ffmpeg_install.sh"
+- name: Build nvmpi library needed for jetson-ffmpeg - Install:/usr/local/lib
+  shell: "{{ build_folder }}/nvmpi_install.sh"
+  become: true
+  tags:
+    - build
+    - install
+
+- name: Build ffmpeg
+  shell: "{{ build_folder }}/ffmpeg_build.sh"
   tags:
     - build
 
-- name: Install ffmpeg nvmpi library and ffmpeg
+- name: Install ffmpeg library
   shell: |
-    cd "{{ build_folder }}/jetson-ffmpeg/build"
-    make install
-    ldconfig
-    cd ffmpeg
+    cd "{{ build_folder }}/ffmpeg"
     make install
     ldconfig
   become: true
   tags:
-    - build
+    - install
 
 - name: Build motion
-  shell: "{{ build_folder }}/motion_install.sh"
+  shell: "{{ build_folder }}/motion_build.sh"
   tags:
     - build
 
@@ -136,8 +139,8 @@
 
 # sudo timedatectl set-timezone America/Sao_Paulo
 - name: Set timezone to America/Sao_Paulo
-  community.general.timezone:
-    name:  America/Sao_Paulo
+  shell: /usr/bin/timedatectl set-timezone America/Sao_Paulo
+  become: true
   tags:
     - config
 
