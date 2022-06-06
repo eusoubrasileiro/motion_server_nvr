@@ -20,10 +20,15 @@
     owner: root
     group: root
     mode: 0644
+  tags:
+    - config
 
 - name: Apply netplan
-  command: sudo netplan apply
+  command: netplan apply
   async: 45
+  become: true
+  tags:
+    - config
 
 - name: Enable and start motion and nginx services
   systemd:
