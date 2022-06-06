@@ -4,6 +4,21 @@
     update_cache: true
   become: true
 
+# jetson-ffmpeg requeriments
+# not sure what exactly nvmpi (nvidia multimedia api) needs
+# certainly usr/src/jetson_multimedia_api/samples
+# nvidia-l4t-jetson-multimedia-api probably from jetpack
+# deepstream-6.0
+- name: Install nvidia multimedia api
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - nvidia-l4t-jetson-multimedia-api
+  become: true
+  tags:
+    - apt
+
 - name: Install packages
   apt:
     name: "{{ item }}"
@@ -23,7 +38,7 @@
     - automake
     - autopoint
     - build-essential
-    - pkgconf
+    - pkg-config
     - libtool
     - libzip-dev
     - libjpeg-dev
@@ -101,6 +116,7 @@
 - name: chown /etc/motion_data since mount did not work
   shell: "chown -R andre:andre {{ motion_storage_dir }}"
   become: true
+  tags:
     - mount
 
 - name: Add ips of network cameras in /etc/hosts
@@ -115,6 +131,13 @@
     - '192.168.0.11    ipcam.kitchen # A0-9F-10-01-30-D8'
     - '192.168.0.13    ipcam.garage #A0-9F-10-01-30-D2'
   become: true
+  tags:
+    - config
+
+# sudo timedatectl set-timezone America/Sao_Paulo
+- name: Set timezone to America/Sao_Paulo
+  community.general.timezone:
+    name:  America/Sao_Paulo
   tags:
     - config
 

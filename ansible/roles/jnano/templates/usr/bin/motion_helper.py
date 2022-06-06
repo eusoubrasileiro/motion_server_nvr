@@ -40,12 +40,13 @@ def recover_space():
     space_max = config['data_size']*1024**3 # maximum size to bytes    
     sizes = np.cumsum(data['size']) # cumulative folder size starting with younger ones
     space_usage = sizes[-1]
-    log_print('motion helper :: data folders are {:.2f} GiB'.format(space_usage/(1024**3)))
+    msg = 'motion helper :: data folders are {:.2f} GiB'.format(space_usage/(1024**3))
     if space_usage >= space_max : # only if folder bigger than maxsize 
         del_start = np.argmax(sizes >= space_max) # index where deleting should start             
-        log_print('motion helper :: recovering space. Deleting: ', len(sizes)-del_start, ' files')        
+        msg += ' :: recovering space. Deleting: {:} files'.format(len(sizes)-del_start)        
         for path in data['path'][del_start:]:            
             os.remove(path)
+    log_print(msg)
     subprocess.run("find " + config['motion_pictures_path'] + " -type d -empty -delete", shell=True) # delete empty folders
     subprocess.run("find " + config['motion_movies_path'] + " -type d -empty -delete", shell=True) # delete empty folders
     # python pathlib or os is 1000x slower than find 

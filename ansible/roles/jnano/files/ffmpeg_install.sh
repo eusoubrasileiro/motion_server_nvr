@@ -1,17 +1,20 @@
 #!/bin/bash
 
 # Custom ffmpeg for jetson nano 
-# 1.build and install nvmpi library
+# 1.build nvmpi library local folder
 
 if [ ! -d "jetson-ffmpeg" ]; then
     git clone https://github.com/jocover/jetson-ffmpeg.git
 fi
 
+# needs usr/src/jetson_multimedia_api/samples
+
 cd jetson-ffmpeg
-mkdir -p build
-cd build
-cmake ..
-make
+cmake .
+make 
+
+#sudo make install # without this ffmpeg cant find nvmpi library
+# or use --extra-cflags --extra-ldflags bellow for local folder
 
 # 2.clone ffmpeg and ...
 if [ ! -d "ffmpeg" ]; then
@@ -20,17 +23,15 @@ fi
 
 # ... patch ffmpeg nvmpi and my RTSP_lower_transport patch
 cd ffmpeg
-if [ ! -f "ffmpeg_nvmpi.patch" ]; then
-    wget https://github.com/jocover/jetson-ffmpeg/raw/master/ffmpeg_nvmpi.patch
-    git apply ffmpeg_nvmpi.patch
-    # Add my custom patch 
-    patch -p1 < ../../../RTSP_lower_transport_TCP.patch
-fi 
+git apply ../ffmpeg_nvmpi.patch
+# Add my custom patch 
+patch -p1 < ../../RTSP_lower_transport_TCP.patch
 
-make  
 #  compiling jetson nano 
 ./configure --disable-outdevs  --disable-indevs --enable-nvmpi \
---enable-shared --prefix=/usr/local #is the default for real linux let it be
+--enable-shared --prefix=/usr/local --extra-cflags="-I$(pwd)/../" \
+--extra-ldflags="-L$(pwd)/../" 
+#is the default for real linux let it be
 # debbuging version
 #./configure --enable-shared --disable-static --disable-optimizations \
 #--disable-mmx --disable-stripping --enable-nvmpi --prefix=/usr/local
