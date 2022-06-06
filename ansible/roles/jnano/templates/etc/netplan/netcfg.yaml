@@ -1,0 +1,23 @@
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    eth0:
+      dhcp4: no
+      addresses:
+        - 192.168.0.35/24
+      gateway4: 192.168.0.1
+      nameservers:
+        addresses: [192.168.0.1, 8.8.8.8]
+  #   eth0:
+  #     dhcp4: true
+  # wifis:
+  #   wlan0:
+  #     dhcp4: true
+  #     dhcp4-overrides:
+  #       use-dns: no
+  #     nameservers:
+  #       addresses: [8.8.8.8,8.8.4.4]
+  #     access-points:
+  #       YOUR_ACCESS_POINT:
+  #         password: WIFI_PASSWORD

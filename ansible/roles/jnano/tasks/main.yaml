@@ -12,6 +12,18 @@
 
 # per ansible repository issue: must include allways tags on include_tasks
 # https://github.com/ansible/ansible/issues/41540#issuecomment-397341326
+        
+- name: Update network conf
+  template:
+    src: etc/netplan/netcfg.yaml
+    dest: /etc/netplan/netcfg.yaml
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Apply netplan
+  command: sudo netplan apply
+  async: 45
 
 - name: Enable and start motion and nginx services
   systemd:
@@ -21,7 +33,7 @@
     state: restarted
     daemon_reload: true
     force: true
-  loop:
+  loop:    
     - motion_helper
     - motion
     - nginx
