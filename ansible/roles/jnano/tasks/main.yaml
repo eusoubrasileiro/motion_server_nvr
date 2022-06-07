@@ -46,3 +46,19 @@
   become: true
   tags:
     - enable
+
+# read-only prevent filesystem  corruption when energy goes down
+# to revert back
+# chattr -R -i /boot /lib /opt /usr /bin /sbin /etc 
+- name: Set everything read only with chattr +i (imutable) ?? will work ??
+  shell: !
+    chattr -R +i /boot /lib /opt /usr /bin /sbin /etc 
+  become: true
+  tags:
+    - never
+  # special tag never run unless --tags never
+## What should be done is try mount /tmp /var as tmpfs
+
+# I have played with script line bellow.
+# to get which files were last modified recursivly inside current folder
+# find $1 -type f -print0 | xargs -0 stat --format '%Y :%y %n' | sort -nr | cut -d: -f2- | head
