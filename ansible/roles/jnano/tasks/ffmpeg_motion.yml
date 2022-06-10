@@ -28,6 +28,7 @@
     - htop
     - git
     - tmux
+    - lsof
     - python3
     - python3-numpy
     - nginx
@@ -105,6 +106,38 @@
   tags:
     - install
 
+- name: Install motion_helper.py
+  template:
+    src: usr/bin/motion_helper.py
+    dest: /usr/bin/motion_helper.py
+    owner: andre
+    group: andre
+    mode: 0755
+  become: true
+  tags:
+    - install
+
+- name: Install motion *.conf and mask files
+  template:
+    src: "usr/local/etc/motion/{{ item }}"
+    dest: /usr/local/etc/motion/
+    owner: andre
+    group: andre
+    mode: 0640
+  loop:
+    - motion.conf
+    - frontwall.conf
+    - garage.conf
+    - kitchen.conf
+    - street.conf
+    - mask_camera_low.pgm
+    - mask_camera_street.pgm
+    - mask_camera.pgm
+  become: true
+  tags:
+    - config
+    - install
+
 - name: Mount 15th partition for Motion rec.media ~95GB (Gparted)
   ansible.posix.mount:
     path: /mnt/motion_data
@@ -163,77 +196,5 @@
   shell: rm /etc/nginx/sites-enabled/default
   become: true
 
-- name: Install motion_helper.py
-  template:
-    src: usr/bin/motion_helper.py
-    dest: /usr/bin/motion_helper.py
-    owner: andre
-    group: andre
-    mode: 0755
-  become: true
-  tags:
-    - install
 
-- name: Install motion_helper service
-  template:
-    src: etc/systemd/system/motion_helper.service
-    dest: /etc/systemd/system/motion_helper.service
-  become: true
-  tags:
-    - install
 
-- name: Install motion service
-  template:
-    src: etc/systemd/system/motion.service
-    dest: /etc/systemd/system/motion.service
-  become: true
-  tags:
-    - install
-
-- name: Install motion_helper.py
-  template:
-    src: usr/bin/motion_helper.py
-    dest: /usr/bin/motion_helper.py
-    owner: andre
-    group: andre
-    mode: 0755
-  become: true
-  tags:
-    - install
- 
-- name: Install motion_helper service
-  template:
-    src: etc/systemd/system/motion_helper.service
-    dest: /etc/systemd/system/motion_helper.service
-  become: true
-  tags:
-    - install
-
-- name: Install motion service
-  template:
-    src: etc/systemd/system/motion.service
-    dest: /etc/systemd/system/motion.service
-  become: true
-  tags:
-    - install
-
-- name: Install motion *.conf and mask files
-  template:
-    src: "usr/local/etc/motion/{{ item }}"
-    dest: /usr/local/etc/motion/
-    owner: andre
-    group: andre
-    mode: 0640
-  loop:
-    - motion.conf
-    - frontwall.conf
-    - garage.conf
-    - kitchen.conf
-    - street.conf
-    - mask_camera_low.pgm
-    - mask_camera_street.pgm
-    - mask_camera.pgm
-  become: true
-  tags:
-    - config
-    - install
