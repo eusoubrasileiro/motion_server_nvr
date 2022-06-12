@@ -9,10 +9,11 @@
   include_tasks: sql3.yml
   tags:
     - always
+    - sql3
 
 # per ansible repository issue: must include allways tags on include_tasks
 # https://github.com/ansible/ansible/issues/41540#issuecomment-397341326
-        
+
 - name: Update network conf
   template:
     src: etc/netplan/netcfg.yaml
@@ -30,6 +31,7 @@
   become: true
   tags:
     - config
+    - netplan
 
 - name: Enable and start motion and nginx services
   systemd:
@@ -39,7 +41,7 @@
     state: restarted
     daemon_reload: true
     force: true
-  loop:    
+  loop:
     - motion_helper
     - motion
     - nginx
@@ -48,9 +50,9 @@
     - enable
 
 - name: Install read only overlay mount .service script
-  template:
+  copy:
     src: ro_overlay.sh
-    dest: /usr/bin/ro_overlay.sh
+    dest: /usr/bin/
     mode: 0700
   become: true
   tags:
@@ -62,11 +64,11 @@
     dest: /etc/systemd/system/
   become: true
   loop:
-    - motion.service 
+    - motion.service
     - motion_helper.service
     - ro_overlay.service
   tags:
-    - install 
+    - install
 
 - name: Enable but dont start overlay mount .service
   systemd:
@@ -76,7 +78,7 @@
     state: stopped
     daemon_reload: true
     force: true
-  loop:    
+  loop:
     - ro_overlay
   become: true
   tags:

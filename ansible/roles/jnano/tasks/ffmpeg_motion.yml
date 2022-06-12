@@ -65,8 +65,8 @@
     mode: 0777
   loop:
     - nvmpi_install.sh
-    - ffmpeg_build.sh    
-    - motion_build.sh    
+    - ffmpeg_build.sh
+    - motion_build.sh
     - RTSP_lower_transport_TCP.patch
   tags:
     - build
@@ -76,7 +76,6 @@
   become: true
   tags:
     - build
-    - install
 
 - name: Build ffmpeg
   shell: "{{ build_folder }}/ffmpeg_build.sh"
@@ -130,6 +129,7 @@
     - garage.conf
     - kitchen.conf
     - street.conf
+    - new.conf
     - mask_camera_low.pgm
     - mask_camera_street.pgm
     - mask_camera.pgm
@@ -163,10 +163,11 @@
     line: "{{ item }}"
   loop:
     - '#from archer c7 router dhcp reservation && security -> mac binding'
-    - '192.168.0.179   ipcam.street # 9C-A3-A9-6A-87-5B'
-    - '192.168.0.12    ipcam.frontwall # A0-9F-10-00-93-C6'
     - '192.168.0.11    ipcam.kitchen # A0-9F-10-01-30-D8'
+    - '192.168.0.12    ipcam.frontwall # A0-9F-10-00-93-C6'
     - '192.168.0.13    ipcam.garage #A0-9F-10-01-30-D2'
+    - '192.168.0.14    ipcam.street # 9C-A3-A9-6A-87-5B'
+    - '192.168.0.15    ipcam.new #B4-FB-E3-35-5F-42'
   become: true
   tags:
     - config
@@ -195,6 +196,5 @@
 - name: Remove default nginx
   shell: rm /etc/nginx/sites-enabled/default
   become: true
-
-
-
+  tags:
+    - nginx 

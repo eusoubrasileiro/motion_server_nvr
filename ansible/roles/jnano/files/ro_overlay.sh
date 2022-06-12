@@ -3,6 +3,7 @@
 #only var folder for while
 
 if [ "$1" == "start" ]; then 
+    systemctl stop nginx 
     # create folders needed by overlay filesystem
     mkdir -p /dev/shm/var_upper /dev/shm/var_workdir /dev/shm/var_overlay
     mkdir -p /var_
@@ -11,14 +12,17 @@ if [ "$1" == "start" ]; then
     # mount --bind does that to /var_
     mount --bind /var /var_ 
     mount -t overlay overlay -o lowerdir=/var_,upperdir=/dev/shm/var_upper,workdir=/dev/shm/var_workdir /var 
+    systemctl start nginx 
 fi
 
 if [ "$1" == "stop" ]; then 
     # might fail in case use lsof to kill process?
     # normally nginx or jounalctl or someoneelse writting logs
     # lsof +D /var > open_files.txt
+    systemctl stop nginx 
     umount /var_ 
     umount /var  
+    systemctl start nginx 
 fi
 
 
