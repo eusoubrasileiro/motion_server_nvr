@@ -156,22 +156,6 @@
   tags:
     - mount
 
-- name: Add ips of network cameras in /etc/hosts
-  lineinfile:
-    path: /etc/hosts
-    state: present
-    line: "{{ item }}"
-  loop:
-    - '#from archer c7 router dhcp reservation && security -> mac binding'
-    - '192.168.0.11    ipcam.kitchen # A0-9F-10-01-30-D8'
-    - '192.168.0.12    ipcam.frontwall # A0-9F-10-00-93-C6'
-    - '192.168.0.13    ipcam.garage #A0-9F-10-01-30-D2'
-    - '192.168.0.14    ipcam.street # 9C-A3-A9-6A-87-5B'
-    - '192.168.0.15    ipcam.new #B4-FB-E3-35-5F-42'
-  become: true
-  tags:
-    - config
-
 # sudo timedatectl set-timezone America/Sao_Paulo
 - name: Set timezone to America/Sao_Paulo
   shell: /usr/bin/timedatectl set-timezone America/Sao_Paulo
