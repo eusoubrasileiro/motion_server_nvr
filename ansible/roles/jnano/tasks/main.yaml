@@ -8,7 +8,6 @@
 - name: SQLITE3 config
   include_tasks: sql3.yml
   tags:
-    - always
     - sql3
 
 # per ansible repository issue: must include allways tags on include_tasks
