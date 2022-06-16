@@ -1,19 +1,10 @@
+---
 network:
   version: 2
   renderer: networkd
   ethernets:
     eth0:
-      dhcp4: no
-      addresses:
-        - 192.168.0.35/24
-      gateway4: 192.168.0.1
-      nameservers:
-        addresses: 
-          - '192.168.0.1'
-          - '8.8.8.8'
-          - '8.8.4.4'
-  #   eth0:
-  #     dhcp4: true
+      dhcp4: true
   # wifis:
   #   wlan0:
   #     dhcp4: true
@@ -24,6 +15,6 @@ network:
   #     access-points:
   #       YOUR_ACCESS_POINT:
   #         password: WIFI_PASSWORD
-# to fix problems with systemd-resolved.service trying to be the only dns-server
-# https://askubuntu.com/a/1329397/52310
-
+  # to fix problems with systemd-resolved.service trying
+  # to be the only dns-server
+  # https://askubuntu.com/a/1329397/52310
