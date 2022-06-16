@@ -138,10 +138,10 @@
     - config
     - install
 
-- name: Mount 15th partition for Motion rec.media ~95GB (Gparted)
+- name: Mount Motion Ext Usb HDD 568 GB
   ansible.posix.mount:
-    path: /mnt/motion_data
-    src: /dev/mmcblk0p15
+    path: "{{ motion_storage_dir }}"
+    src: /dev/sda1
     fstype: ext4
     opts: "defaults"
     state: mounted
@@ -150,7 +150,7 @@
     - mount
 
 # since opts 'user, umask=0000' above is not working
-- name: chown /etc/motion_data since mount did not work
+- name: chown motion_storage folder since mount did not work
   shell: "chown -R andre:andre {{ motion_storage_dir }}"
   become: true
   tags:
@@ -181,4 +181,4 @@
   shell: rm /etc/nginx/sites-enabled/default
   become: true
   tags:
-    - nginx 
+    - nginx
