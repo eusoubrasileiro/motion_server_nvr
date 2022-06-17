@@ -29,3 +29,7 @@ ________________________
 To avoid the decoding and disconnection errors, it is recommended that the FPS (`frame_rate`) of the camera be adjusted where possible (not possible for me).
 Generally, it is preferable to have the FPS (`frame_rate`) of the camera be *slightly lower than the `capture_rate`* of Motion. This allows for the decoder to perform better and reduce decoding errors. 
 
+________________________
+#### Comments '#'
+
+Don't comment on the same line of a parameter. It's not allowed!
