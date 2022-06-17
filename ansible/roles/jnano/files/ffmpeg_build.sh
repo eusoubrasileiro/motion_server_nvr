@@ -23,15 +23,15 @@ patch -p1 < ../RTSP_lower_transport_TCP.patch
 --enable-encoder=mpeg2video --enable-encoder=mpeg4 \
 --disable-muxers \
 --enable-muxer=mpeg2video --enable-muxer=mp4 --enable-muxer=rtsp \
---enable-muxer=h264 --enable-muxer=hevc --enable-muxer=mp4 
+--enable-muxer=h264 --enable-muxer=hevc --enable-muxer=mp4 \
+--disable-decoders \
+--enable-decoder=hevc_nvmpi --enable-decoder=h264_nvmpi \
+--enable-decoder=hevc --enable-decoder=h264
+
 
 # cannot disable all decoders, demuxers
 # it seams those bellower are not enough to decode NAL H265 etc.
-# --enable-decoder=hevc_nvmpi --enable-decoder=h264_nvmpi \
-# --disable-decoders \
-# --enable-decoder=hevc_nvmpi --enable-decoder=h264_nvmpi \
-# --enable-decoder=hevc --enable-decoder=h264
-
+# --enable-decoder=hevc_nvmpi --enable-decoder=h264_nvmpi 
 # ffmpeg build time reduced 10 fold (trying to)
 # - disabling almost everything possible 
 # - trying enable only what is needed 
