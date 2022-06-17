@@ -133,7 +133,6 @@
     - new.conf
     - mask_camera_low.pgm
     - mask_camera_street.pgm
-    - mask_camera.pgm
   become: true
   tags:
     - config
