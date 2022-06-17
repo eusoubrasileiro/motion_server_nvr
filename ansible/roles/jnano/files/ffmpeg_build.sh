@@ -16,9 +16,10 @@ patch -p1 < ../RTSP_lower_transport_TCP.patch
 
 #  compiling jetson nano 
 ./configure --enable-nvmpi \
---disable-outdevs  --disable-indevs --disable-devices \
 --disable-ffprobe --disable-ffplay \
+--disable-outdevs --disable-indevs --disable-devices --disable-filters \
 --enable-shared --prefix=/usr/local 
+
 
 # ffmpeg build time reduced 10 fold (trying to)
 # - disabling almost everything possible 
