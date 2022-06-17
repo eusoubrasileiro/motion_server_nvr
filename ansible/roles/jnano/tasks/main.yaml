@@ -32,6 +32,18 @@
     - config
     - netplan
 
+- name: Install motion's and ro-overlay services
+  template:
+    src: "etc/systemd/system/{{ item }}"
+    dest: /etc/systemd/system/
+  become: true
+  loop:
+    - motion.service
+    - motion_helper.service
+    - ro_overlay.service
+  tags:
+    - install
+
 - name: Enable and start motion and nginx services
   systemd:
     name: "{{ item }}"
@@ -41,8 +53,8 @@
     daemon_reload: true
     force: true
   loop:
-    - motion_helper
     - motion
+    - motion_helper    
     - nginx
   become: true
   tags:
@@ -54,18 +66,6 @@
     dest: /usr/bin/
     mode: 0700
   become: true
-  tags:
-    - install
-
-- name: Install motion's and ro-overlay services
-  template:
-    src: "etc/systemd/system/{{ item }}"
-    dest: /etc/systemd/system/
-  become: true
-  loop:
-    - motion.service
-    - motion_helper.service
-    - ro_overlay.service
   tags:
     - install
 

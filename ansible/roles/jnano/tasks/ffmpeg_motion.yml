@@ -68,6 +68,7 @@
     - ffmpeg_build.sh
     - motion_build.sh
     - RTSP_lower_transport_TCP.patch
+    - sqlite3_threadsafe.patch
   tags:
     - build
 
@@ -178,7 +179,10 @@
     - install
 
 - name: Remove default nginx
-  shell: rm /etc/nginx/sites-enabled/default
+  shell: |
+    if [ ! -f "/etc/nginx/sites-enabled/default" ]; then
+      rm /etc/nginx/sites-enabled/default
+    fi
   become: true
   tags:
     - nginx
