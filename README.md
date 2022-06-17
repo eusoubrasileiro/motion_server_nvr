@@ -6,3 +6,17 @@
  
  - Uses [a custom](https://github.com/eusoubrasileiro/jetson-nano-image/tree/bionic_latest) jeston-nano image Ubuntu 18.04.5.
  
+
+
+### Motion Configuration Notes 
+
+#### *.conf files
+
+#### About `width`x`height`
+
+- If motion complains the network camera is sending pictures in a different size. And that it's resizing the images.
+It is indeed resizing the image using swscale.lib from ffmpeg. Your width, heigh passed is wrong or not being parsed due some tipo.
+I was using `width=640` when correct is without `=`. Each camera must provide its width, height for low resolution outsite `camera_params`.
+For high resolution stream you can provide width, height on camera params.
+
+More details: motion uses `ffmpeg` (`libswscale/swscale.c`) `sws_getContext`  and `sws_scale` on `src/netcam_rtsp.c` for software resizing rtsp frames to provided `width`x`height`.
