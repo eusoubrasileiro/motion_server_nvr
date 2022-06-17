@@ -18,8 +18,19 @@ patch -p1 < ../RTSP_lower_transport_TCP.patch
 ./configure --enable-nvmpi \
 --disable-ffprobe --disable-ffplay \
 --disable-outdevs --disable-indevs --disable-devices --disable-filters \
---enable-shared --prefix=/usr/local 
+--enable-shared --prefix=/usr/local \
+--disable-encoders \
+--enable-encoder=mpeg2video --enable-encoder=mpeg4 \
+--disable-muxers \
+--enable-muxer=mpeg2video --enable-muxer=mp4 --enable-muxer=rtsp \
+--enable-muxer=h264 --enable-muxer=hevc --enable-muxer=mp4 
 
+# cannot disable all decoders, demuxers
+# it seams those bellower are not enough to decode NAL H265 etc.
+# --enable-decoder=hevc_nvmpi --enable-decoder=h264_nvmpi \
+# --disable-decoders \
+# --enable-decoder=hevc_nvmpi --enable-decoder=h264_nvmpi \
+# --enable-decoder=hevc --enable-decoder=h264
 
 # ffmpeg build time reduced 10 fold (trying to)
 # - disabling almost everything possible 
