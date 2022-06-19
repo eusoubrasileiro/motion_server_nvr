@@ -26,11 +26,7 @@ patch -p1 < ../RTSP_lower_transport_TCP.patch
 --enable-muxer=h264 --enable-muxer=hevc --enable-muxer=mp4 \
 --disable-decoders \
 --enable-decoder=hevc_nvmpi --enable-decoder=h264_nvmpi \
---enable-decoder=hevc --enable-decoder=h264 \
---disable-protocols \
---enable-protocol=rtmp \
---disable-demuxers \
---enable-demuxer=rtsp --enable-demuxer=h264 --enable-demuxer=hevc 
+--enable-decoder=hevc --enable-decoder=h264
 
 # missing parsers and bsfs
 
