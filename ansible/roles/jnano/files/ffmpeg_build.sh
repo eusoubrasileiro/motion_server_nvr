@@ -26,34 +26,13 @@ patch -p1 < ../RTSP_lower_transport_TCP.patch
 --enable-muxer=h264 --enable-muxer=hevc --enable-muxer=mp4 \
 --disable-decoders \
 --enable-decoder=hevc_nvmpi --enable-decoder=h264_nvmpi \
---enable-decoder=hevc --enable-decoder=h264
+--enable-decoder=hevc --enable-decoder=h264 \
+--disable-protocols \
+--enable-protocol=rtmp \
+--disable-demuxers \
+--enable-demuxer=rtsp --enable-demuxer=h264 --enable-demuxer=hevc 
 
-
-# cannot disable all decoders, demuxers
-# it seams those bellower are not enough to decode NAL H265 etc.
-# --enable-decoder=hevc_nvmpi --enable-decoder=h264_nvmpi 
-# ffmpeg build time reduced 10 fold (trying to)
-# - disabling almost everything possible 
-# - trying enable only what is needed 
-# - tested working
-# compiling using nvmpi (nvidia multimedia api) jetson nano hardware decoders
-# mpg2video, mpg4 is for mpg/mp4 timelapse videos encoded from 1 second jpegs
-# ./configure --enable-nvmpi --disable-outdevs  --disable-indevs  \
-# --disable-ffprobe --disable-ffplay --disable-encoders --disable-filters \
-# --disable-devices --disable-protocols --disable-decoders \
-# --disable-muxers --disable-demuxers \
-# --enable-protocol=rtmp \
-# --enable-encoder=mpeg2video --enable-encoder=mpeg4 \
-# --enable-muxer=mpeg2video --enable-muxer=mp4 \
-# --enable-decoder=hevc_nvmpi --enable-decoder=h264_nvmpi \
-# --enable-muxer=rtsp --enable-muxer=h264 --enable-muxer=hevc --enable-muxer=mp4 \
-# --enable-demuxer=rtsp --enable-demuxer=h264 --enable-demuxer=hevc  \
-# --enable-shared --prefix=/usr/local
-# more to add to try
-#--enable-demuxers=image_jpeg_pipe image2pipe image2
-#--enable-muxers=image2pipe
-
-
+# missing parsers and bsfs
 
 # debbuging version
 #./configure --enable-shared --disable-static --disable-optimizations \
