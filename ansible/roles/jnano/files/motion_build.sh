@@ -9,6 +9,10 @@ fi
 
 cd motion-release-4.4.0/ && autoreconf -fiv
 
+# apply my event_id patch - otherwise sql_query still doesn't work alone is not capable
+# github issue https://github.com/Motion-Project/motion/issues/1537
+patch -p1 < ../event_id.patch
+
 # apply my sqlite3 patch - otherwise sql_query doesnt work
 # github issue https://github.com/Motion-Project/motion/issues/1537
 patch -p1 < ../sqlite3_threadsafe.patch

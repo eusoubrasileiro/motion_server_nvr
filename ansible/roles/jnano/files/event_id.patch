@@ -1,0 +1,39 @@
+diff --git a/src/motion.c b/src/motion.c
+index 4a2c2a7..788b7ff 100644
+--- a/src/motion.c
++++ b/src/motion.c
+@@ -554,6 +554,7 @@ static void motion_detected(struct context *cnt, int dev, struct image_data *img
+             cnt->prev_event = cnt->event_nr;
+             cnt->eventtime = img->timestamp_tv.tv_sec;
+             localtime_r(&cnt->eventtime, cnt->eventtime_tm);
++            cnt->event_id = ((unsigned long long) cnt->eventtime << 32) | cnt->thread_id; 
+ 
+             /*
+              * Since this is a new event we create the event_text_string used for
+diff --git a/src/motion.h b/src/motion.h
+index 6371ea6..b5942bb 100644
+--- a/src/motion.h
++++ b/src/motion.h
+@@ -441,6 +441,7 @@ struct context {
+ 
+     int event_nr;
+     int prev_event;
++    unsigned long long event_id;
+     unsigned long long database_event_id;
+     unsigned int lightswitch_framecounter;
+     char text_event_string[PATH_MAX];        /* The text for conv. spec. %C - */
+diff --git a/src/util.c b/src/util.c
+index 6ed7534..a42d429 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -402,6 +402,10 @@ static void mystrftime_long (const struct context *cnt, int width, const char *w
+         sprintf(out, "%*s", width, VERSION);
+         return;
+     }
++    if (SPECIFIERWORD("eventid")) {
++        sprintf(out, "%*llu", width, cnt->event_id);
++        return;
++    }
+ 
+     // Not a valid modifier keyword. Log the error and ignore.
+     MOTION_LOG(ERR, TYPE_ALL, NO_ERRNO,
