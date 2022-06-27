@@ -1,0 +1,19 @@
+diff --git a/src/util.c b/src/util.c
+index 6ed7534..72c1ce2 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -402,6 +402,14 @@ static void mystrftime_long (const struct context *cnt, int width, const char *w
+         sprintf(out, "%*s", width, VERSION);
+         return;
+     }
++    if (SPECIFIERWORD("eventtime")) {
++        sprintf(out, "%*lu", width, cnt->eventtime);
++        return;
++    }
++    if (SPECIFIERWORD("timet")) {
++        sprintf(out, "%*lu", width, time(NULL));
++        return;
++    }
+ 
+     // Not a valid modifier keyword. Log the error and ignore.
+     MOTION_LOG(ERR, TYPE_ALL, NO_ERRNO,

@@ -6,16 +6,16 @@ motion_build_folder: motion-release-4.4.0
 motion_db:
   file: motion.db
   sql_query_start: >
-    INSERT INTO events(id, cam, name, start) 
-    VALUES(%{eventid}, %t, '%$', '%Y-%m-%d %T');
+    INSERT INTO events(cam, name, start) 
+    VALUES(%t, '%$', %{eventtime});
   sql_query: >
     UPDATE events SET pfile='%f',nchange_pixels=%D,width=%w,height=%h,motion_width=%i,motion_height=%J,motion_cx=%K,motion_cy=%L,threshold=%o,fps=%{fps},frame=%q 
-    WHERE id=%{eventid} AND %n=1; 
+    WHERE start=%{eventtime} AND cam=%t AND %n=1; 
     UPDATE events SET mfile='%f' 
-    WHERE id=%{eventid} AND %n=8; 
+    WHERE start=%{eventtime} AND cam=%t AND %n=8; 
   sql_query_stop: >
-    UPDATE events SET stop='%Y-%m-%d %T' 
-    WHERE id=%{eventid};
+    UPDATE events SET stop=%{timet}
+    WHERE start=%{eventtime} AND cam=%t;
 # > multiline string without linebreaks
 
 # file type '%n' or 1 for picture or 8 for movie motion
@@ -36,4 +36,4 @@ motion_db:
 # %C	value by text_event	       %f	filename with full path	    %n	number indicating filetype
 # %o	threshold	                 %Q	Number labels despeckle	    %{dbeventid}	See sql_query_start
 # %$	camera name	               %{fps}	current fps	            %{host}	name of computer running Motion
-# %{ver}	The version of Motion	 %{eventid}	unique event id
+# %{ver}	The version of Motion	 %{eventtime}	unix epoch event time %{timet} unix epoch time
