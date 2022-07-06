@@ -69,7 +69,6 @@
     - motion_build.sh
     - RTSP_lower_transport_TCP.patch
     - time_t.patch
-    - sqlite3_threadsafe.patch
   tags:
     - build
 

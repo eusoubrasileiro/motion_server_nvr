@@ -2,7 +2,7 @@
 build_folder: /home/andre
 motion_storage_size: 540
 motion_storage_dir: /mnt/motion
-motion_build_folder: motion-release-4.4.0
+motion_build_folder: motion-src
 motion_db:
   file: motion.db
   sql_query_start: >

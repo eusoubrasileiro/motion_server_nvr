@@ -1,21 +1,19 @@
 #!/bin/bash
 
-if [ ! -f "motion-4.4.zip" ]; then # only if not downloaded yet
-    wget -O motion-4.4.zip https://github.com/Motion-Project/motion/archive/refs/tags/release-4.4.0.zip
+if [ ! -f "motion-src.zip" ]; then # only if not downloaded yet
+    wget -O motion-src.zip https://github.com/Motion-Project/motion/archive/2829dc766e404bdb24d0435111b4b00c343ab5ee.zip
 fi
-if [ ! -d "motion-release-4.4.0" ]; then # only if not unziped yet
-    unzip motion-4.4.zip
+if [ ! -d "motion-src" ]; then # only if not unziped yet
+    unzip motion-src.zip
+    # rename weird folder name to motion-src 
+    find . -type d -name 'motion-*' -exec bash -c 'mv "$1" motion-src' - {} \;
 fi
 
-cd motion-release-4.4.0/ && autoreconf -fiv
+cd motion-src/ && autoreconf -fiv
 
 # apply my event_id patch - otherwise sql_query still doesn't work alone is not capable
 # github issue https://github.com/Motion-Project/motion/issues/1537
 patch -p1 < ../time_t.patch
-
-# apply my sqlite3 patch - otherwise sql_query doesnt work
-# github issue https://github.com/Motion-Project/motion/issues/1537
-patch -p1 < ../sqlite3_threadsafe.patch
 
 # in case running again
 make clean 
