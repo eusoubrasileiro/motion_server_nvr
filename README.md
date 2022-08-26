@@ -1,4 +1,4 @@
-### Network Video Recorder System Inside Linux 
+### Network Video Recorder System for Jeston Nano Developers Kit
 
 - Uses [Motion Project](https://github.com/Motion-Project/motion)
 
