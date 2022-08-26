@@ -1,4 +1,4 @@
-### Network Video Recorder System for Jeston Nano Developers Kit
+### Network Video Recorder System for Jetson Nano Developers Kit
 
 - Uses [Motion Project](https://github.com/Motion-Project/motion)
 
