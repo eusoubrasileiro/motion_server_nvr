@@ -47,6 +47,7 @@
     - gettext
     - libmicrohttpd-dev
     - unzip
+    - rsyslog
   become: true
   tags:
     - apt

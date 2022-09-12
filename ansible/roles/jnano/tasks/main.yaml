@@ -44,7 +44,19 @@
   tags:
     - install
 
-- name: Enable and start motion and nginx services
+- name: Install rsyslog configuration
+  template:
+    src: "etc/{{ item }}"
+    dest: /etc/
+  become: true
+  loop:
+    - rsyslog.conf
+    - rsyslog.d/50-default.conf
+  tags:
+    - install
+    - rsyslog
+
+- name: Enable and services
   systemd:
     name: "{{ item }}"
     enabled: true
@@ -56,6 +68,7 @@
     - motion
     - motion_helper    
     - nginx
+    - rsyslog
   become: true
   tags:
     - enable
