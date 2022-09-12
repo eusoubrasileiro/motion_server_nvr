@@ -51,6 +51,16 @@
   become: true
   loop:
     - rsyslog.conf
+  tags:
+    - install
+    - rsyslog
+
+- name: Install rsyslog configuration
+  template:
+    src: "etc/{{ item }}"
+    dest: /etc/rsyslog.d/
+  become: true
+  loop:
     - rsyslog.d/50-default.conf
   tags:
     - install
