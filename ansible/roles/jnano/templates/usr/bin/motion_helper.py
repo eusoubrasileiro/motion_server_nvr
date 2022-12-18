@@ -7,6 +7,51 @@ import os, io
 import argparse
 import threading as th
 import numpy as np 
+from systemd import journal
+import smtplib
+from datetime import datetime, timedelta 
+
+
+gmail_user = 'eusoubrasileiro@gmail.com'
+gmail_app_password = {{ gmail_app_password | password_hash('sha512') }} 
+sent_from = gmail_user
+sent_to = ['aflopes7@gmail.com']
+sent_subject = "Motion NVR Server ERROR"
+email_text = f"""\
+From: {sent_from}
+To: {sent_to}
+Subject: {sent_subject}
+
+"""
+
+   
+def send_email(msg):
+    sent_body = (msg)    
+    email_text += sent_body + "\n"
+    try:
+        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+        server.ehlo()
+        server.login(gmail_user, gmail_app_password)
+        server.sendmail(sent_from, sent_to, email_text)
+        server.close()    
+    except Exception as exception:
+        print("Error: %s!\n\n" % exception)
+
+def send_email_if_errors():
+    j = journal.Reader()
+    j.log_level(journal.LOG_INFO)
+    j.add_match(_SYSTEMD_UNIT="motion.service")
+    j.seek_realtime(datetime.now() - timedelta(minutes=15))
+    count=0
+    msgs = []
+    for entry in j:
+        msgs.append(f" {entry['__REALTIME_TIMESTAMP']} {entry['MESSAGE']}")
+        if '[ERR]' in entry['MESSAGE']:
+            count=count+1  
+    log_print(f"motion helper :: total number of [ERR] {count}")
+    if count > 0:
+        send_email("\n".join(msgs))
+    return count 
 
 
 # recommended approach dict as global
@@ -76,6 +121,7 @@ def main():
         while True:            
             # takes almost forever to compute disk usage size so put on another thread  
             th.Thread(target=recover_space).start()             
+            th.Thread(target=send_email_if_errors).start()             
             # I use syslog so I dont need to clean up self-made logs
             time.sleep(15*60) # every 15 minutes only
             # could change to events motion.conf

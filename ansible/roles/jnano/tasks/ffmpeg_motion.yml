@@ -48,6 +48,9 @@
     - libmicrohttpd-dev
     - unzip
     - rsyslog
+    # systemd.journal python package
+    - libsystemd-dev
+    - python3-pip
   become: true
   tags:
     - apt

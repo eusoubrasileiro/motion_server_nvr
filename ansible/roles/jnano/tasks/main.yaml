@@ -66,6 +66,10 @@
     - install
     - rsyslog
 
+- name: Install systemd-python package to e-mail journalctl error logs
+  ansible.builtin.pip:
+    name: systemd-python
+
 - name: Enable and services
   systemd:
     name: "{{ item }}"
@@ -76,7 +80,7 @@
     force: true
   loop:
     - motion
-    - motion_helper    
+    - motion_helper
     - nginx
     - rsyslog
   become: true
