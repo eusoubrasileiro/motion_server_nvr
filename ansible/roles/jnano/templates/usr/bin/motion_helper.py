@@ -12,22 +12,41 @@ import smtplib
 from datetime import datetime, timedelta 
 from email.message import EmailMessage
 
-gmail_user = 'eusoubrasileiro@gmail.com'
-gmail_app_password = {{ gmail_app_password | password_hash('sha512') }} 
-email = EmailMessage()
-email['Subject'] = "Motion NVR Server ERROR"
-email['From'] = gmail_user
-email['To'] = 'aflopes7@gmail.com'
-  
-def send_email(msg):
+
+# recommended approach dict as global
+config = { 
+    'motion_pictures_path' : None,
+    'motion_movies_path' : None,
+    'data_size' : 90.,
+    'gmail_user' : 'eusoubrasileiro@gmail.com',
+    'gmail_to' : 'aflopes7@gmail.com',
+    'gmail_app_password' : {{ gmail_app_password | password_hash('sha512') }},
+    'last_alive' : datetime.now()
+}
+
+#### email support
+
+def make_email(title, msg):
+    email = EmailMessage()
+    email['Subject'] = title
+    email['From'] = config['gmail_user']
+    email['To'] = config['gmail_to']
+    email.set_content(msg, subtype='html')
+    return email
+   
+def send_email(msg, title="Motion NVR Server ERROR"):
     try:
-        email.set_content(msg, subtype='html')
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
             server.ehlo()
-            server.login(gmail_user, gmail_app_password)
-            server.send_message(email)
+            server.login(config['gmail_user'], config['gmail_app_password'])
+            server.send_message(make_email(title, msg))
     except Exception as exception:
         print("Error: %s!\n\n" % exception)
+
+def send_email_im_alive(interval=timedelta(hours=1)):
+    if datetime.now() > config['last_alive'] + interval:
+        send_email("<br><br>IMALIVE!", "Motion NVR Server ALIVE")
+        config['last_alive'] = datetime.now()        
 
 def send_email_if_errors(since=timedelta(minutes=15)):
     j = journal.Reader()
@@ -48,14 +67,8 @@ def send_email_if_errors(since=timedelta(minutes=15)):
         send_email(msgs)
     return count 
 
-#send_email_if_errors(timedelta(minutes=30))
 
-# recommended approach dict as global
-config = { 
-    'motion_pictures_path' : None,
-    'motion_movies_path' : None,
-    'data_size' : 90.
-    }
+#### main helper tools
 
 lock = th.Lock()
 # only need to lock when printing on main or background threads
@@ -118,6 +131,7 @@ def main():
             # takes almost forever to compute disk usage size so put on another thread  
             th.Thread(target=recover_space).start()             
             th.Thread(target=send_email_if_errors).start()             
+            th.Thread(target=send_email_im_alive).start()           
             # I use syslog so I dont need to clean up self-made logs
             time.sleep(15*60) # every 15 minutes only
             # could change to events motion.conf
