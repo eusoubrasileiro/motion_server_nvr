@@ -10,49 +10,45 @@ import numpy as np
 from systemd import journal
 import smtplib
 from datetime import datetime, timedelta 
-
+from email.message import EmailMessage
 
 gmail_user = 'eusoubrasileiro@gmail.com'
 gmail_app_password = {{ gmail_app_password | password_hash('sha512') }} 
-sent_from = gmail_user
-sent_to = ['aflopes7@gmail.com']
-sent_subject = "Motion NVR Server ERROR"
-email_text = f"""\
-From: {sent_from}
-To: {sent_to}
-Subject: {sent_subject}
-
-"""
-
-   
+email = EmailMessage()
+email['Subject'] = "Motion NVR Server ERROR"
+email['From'] = gmail_user
+email['To'] = 'aflopes7@gmail.com'
+  
 def send_email(msg):
-    sent_body = (msg)    
-    email_text += sent_body + "\n"
     try:
-        server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
-        server.ehlo()
-        server.login(gmail_user, gmail_app_password)
-        server.sendmail(sent_from, sent_to, email_text)
-        server.close()    
+        email.set_content(msg, subtype='html')
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.ehlo()
+            server.login(gmail_user, gmail_app_password)
+            server.send_message(email)
     except Exception as exception:
         print("Error: %s!\n\n" % exception)
 
-def send_email_if_errors():
+def send_email_if_errors(since=timedelta(minutes=15)):
     j = journal.Reader()
     j.log_level(journal.LOG_INFO)
     j.add_match(_SYSTEMD_UNIT="motion.service")
-    j.seek_realtime(datetime.now() - timedelta(minutes=15))
-    count=0
-    msgs = []
-    for entry in j:
-        msgs.append(f" {entry['__REALTIME_TIMESTAMP']} {entry['MESSAGE']}")
-        if '[ERR]' in entry['MESSAGE']:
+    j.seek_realtime(datetime.now() - since)
+    count = 0
+    msgs = ''
+    for entry in j:        
+        if '[ERR]' not in entry['MESSAGE']:
+            open_, close_ = '', ''
+        else:  # or use jinja2. Too overkill?            
             count=count+1  
+            open_, close_ = '<font color="red">', '</font>'
+        msgs += f"{open_} {entry['__REALTIME_TIMESTAMP']} {entry['MESSAGE']} {close_} <br>"
     log_print(f"motion helper :: total number of [ERR] {count}")
     if count > 0:
-        send_email("\n".join(msgs))
+        send_email(msgs)
     return count 
 
+#send_email_if_errors(timedelta(minutes=30))
 
 # recommended approach dict as global
 config = { 
