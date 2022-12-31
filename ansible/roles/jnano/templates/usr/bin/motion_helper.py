@@ -6,6 +6,7 @@ import subprocess
 import os, io 
 import argparse
 import threading as th
+import functools
 import numpy as np 
 from systemd import journal
 import smtplib
@@ -21,8 +22,27 @@ config = {
     'gmail_user' : 'eusoubrasileiro@gmail.com',
     'gmail_to' : 'aflopes7@gmail.com',
     'gmail_app_password' : {{ gmail_app_password | password_hash('sha512') }},
-    'last_alive' : datetime.now()
 }
+
+def background_task(interval_secs=15*60):
+    def background_task_decorator(function):
+        """Decorator for tasks to be run on background (Thread)
+        exceptions are handled, `interval_secs` is the amount of time to wait between looped execution
+        doesn't return function return value since on onother thread
+        """
+        @functools.wraps(function)
+        def wrapper(*args, **kwargs):       
+            def loop_func():
+                while True:
+                    try:                
+                        function(*args, **kwargs)
+                        time.sleep(interval_secs)
+                    except Exception as e:
+                        log_print(f"motion helper :: Python exception at {function.__name__}")
+                        log_print(traceback.format_exc())          
+            th.Thread(target=loop_func).start()  
+        return wrapper
+    return background_task_decorator
 
 #### email support
 
@@ -43,12 +63,12 @@ def send_email(msg, title="Motion NVR Server ERROR"):
     except Exception as exception:
         print("Error: %s!\n\n" % exception)
 
-def send_email_im_alive(interval=timedelta(hours=1)):
-    if datetime.now() > config['last_alive'] + interval:
-        send_email("<br><br>IMALIVE!", "Motion NVR Server ALIVE")
-        config['last_alive'] = datetime.now()        
+@background_task(interval_secs=60*60) #  run every 1 hour 3600 seconds
+def send_email_im_alive():
+    send_email("<br><br>IMALIVE!", "Motion NVR Server ALIVE")
 
-def send_email_if_errors(since=timedelta(minutes=15)):
+@background_task(interval_secs=10*60) # run every 10 minues
+def send_email_if_errors(since=timedelta(minutes=10)):
     j = journal.Reader()
     j.log_level(journal.LOG_INFO)
     j.add_match(_SYSTEMD_UNIT="motion.service")
@@ -78,8 +98,10 @@ def log_print(*args, **kwargs):
         # by default print on stdout -> go to syslog     
         print(time.strftime("%Y-%m-%d %H:%M:%S")," ".join(map(str,args)),**kwargs)
 
+@background_task(interval_secs=15*60) # run every 15 minutes
 def recover_space():
-    """run cleanning motion folders files reclaiming space used (older files first)
+    """Run cleanning motion folders files reclaiming space used (older files first)
+    Takes almost forever to compute disk usage size better run on another thread.
     """ 
     def array_files(storage_path):
         result = subprocess.run(r"find " + storage_path + r" -type f -printf '%T@;;%p;;%s\n'", 
@@ -126,19 +148,16 @@ def set_motion_config(dir_motion_data, data_size):
 def main():
     try:
         log_print('motion helper :: starting')
-        # you can read syslog or log messages use events from motion.conf to get when thereis a disconnection or else    
-        while True:            
-            # takes almost forever to compute disk usage size so put on another thread  
-            th.Thread(target=recover_space).start()             
-            th.Thread(target=send_email_if_errors).start()             
-            th.Thread(target=send_email_im_alive).start()           
-            # I use syslog so I dont need to clean up self-made logs
-            time.sleep(15*60) # every 15 minutes only
-            # could change to events motion.conf
+        # Read systemd messages for motion or use disconnection events from itself?
+        # background threaded looped tasks    
+        recover_space()            
+        send_email_if_errors()
+        send_email_im_alive()
+        # could change to events motion.conf
     except Exception as e:
-        log_print("motion helper :: Python exception")
+        log_print("motion helper :: Python exception on Main")
         log_print(traceback.format_exc())
-
+        main() # run main, maybe not the wisest thing
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Motion NVR Helper')
