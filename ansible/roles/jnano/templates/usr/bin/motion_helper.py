@@ -7,6 +7,7 @@ import os, io
 import argparse
 import threading as th
 import functools
+import sqlite3
 import numpy as np 
 from systemd import journal
 import smtplib
@@ -65,7 +66,12 @@ def send_email(msg, title="Motion NVR Server ERROR"):
 
 @background_task(interval_secs=60*60) #  run every 1 hour 3600 seconds
 def send_email_im_alive():
-    send_email("<br><br>IMALIVE!", "Motion NVR Server ALIVE")
+    with sqlite3.connect({{ motion_storage_dir / motion_db.file}}) as con: #'/mnt/motion/motion.db'
+        now_utc = int(time.time())# it is UTC by default
+        cameras = dict(zip(('kitchen', 'frontwall', 'new', 'street', 'garage'), [0]*5))
+        for row in con.execute(f"SELECT * FROM events WHERE start > {now_utc-60*60}"): 
+            cameras[row[4]] = cameras[row[4]] + 1 # last hour events per cam
+    send_email(f"<br><br>server-time: {str(datetime.now())} Events -1H {str(cameras)}", "Motion NVR Server ALIVE")
 
 @background_task(interval_secs=10*60) # run every 10 minues
 def send_email_if_errors(since=timedelta(minutes=10)):
