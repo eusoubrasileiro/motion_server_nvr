@@ -68,7 +68,7 @@ def send_email(msg, title="Motion NVR Server ERROR"):
 def send_email_im_alive():
     with sqlite3.connect({{ motion_storage_dir / motion_db.file}}) as con: #'/mnt/motion/motion.db'
         now_utc = int(time.time())# it is UTC by default
-        cameras = dict(zip(('kitchen', 'frontwall', 'new', 'street', 'garage'), [0]*5))
+        cameras = dict(zip(('front-up', 'front-left', 'left-aisle', 'right-aisle', 'broken-static'), [0]*5))
         for row in con.execute(f"SELECT * FROM events WHERE start > {now_utc-60*60}"): 
             cameras[row[4]] = cameras[row[4]] + 1 # last hour events per cam
     send_email(f"<br><br>server-time: {str(datetime.now())} Events -1H {str(cameras)}", "Motion NVR Server ALIVE")
