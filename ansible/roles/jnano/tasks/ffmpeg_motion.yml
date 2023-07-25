@@ -1,10 +1,4 @@
 ---
-- name: Update apt packages
-  apt:
-    update_cache: true
-  become: true
-  tags:
-    - apt
 
 # jetson-ffmpeg only requeriment
 - name: Install nvidia multimedia api
@@ -51,6 +45,8 @@
     # systemd.journal python package
     - libsystemd-dev
     - python3-pip
+    # nfs mount shared from orangepi
+    - nfs-common
   become: true
   tags:
     - apt
@@ -118,6 +114,7 @@
     group: andre
     mode: 0755
   become: true
+  ignore_errors: yes
   tags:
     - install
 
@@ -129,63 +126,15 @@
     group: andre
     mode: 0640
   loop:
-    - motion.conf
-    - frontwall.conf
-    - garage.conf
-    - kitchen.conf
-    - street.conf
-    - new.conf
+    - motion.conf    
+    - front_left.conf
+    - front_up.conf
+    - left_aisle.conf
+    - right_aisle.conf
+    - broken_static.conf
     - mask_camera_low.pgm
     - mask_camera_street.pgm
   become: true
   tags:
     - config
     - install
-
-- name: Mount Motion Ext Usb HDD 568 GB
-  ansible.posix.mount:
-    path: "{{ motion_storage_dir }}"
-    src: /dev/sda1
-    fstype: ext4
-    opts: "defaults"
-    state: mounted
-  become: true
-  tags:
-    - mount
-
-# since opts 'user, umask=0000' above is not working
-- name: chown motion_storage folder since mount did not work
-  shell: "chown -R andre:andre {{ motion_storage_dir }}"
-  become: true
-  tags:
-    - mount
-
-# sudo timedatectl set-timezone America/Sao_Paulo
-- name: Set timezone to America/Sao_Paulo
-  shell: /usr/bin/timedatectl set-timezone America/Sao_Paulo
-  become: true
-  tags:
-    - config
-
-- name: Install nginx .conf
-  template:
-    src: "etc/nginx/sites-enabled/{{ item }}"
-    dest: /etc/nginx/sites-enabled/
-    owner: andre
-    group: andre
-    mode: 0640
-  loop:
-    - motion_files.conf
-  become: true
-  tags:
-    - config
-    - install
-
-- name: Remove default nginx
-  shell: |
-    if [ ! -f "/etc/nginx/sites-enabled/default" ]; then
-      rm /etc/nginx/sites-enabled/default
-    fi
-  become: true
-  tags:
-    - nginx

@@ -66,7 +66,9 @@ def send_email(msg, title="Motion NVR Server ERROR"):
 
 @background_task(interval_secs=60*60) #  run every 1 hour 3600 seconds
 def send_email_im_alive():
-    with sqlite3.connect({{ motion_storage_dir / motion_db.file}}) as con: #'/mnt/motion/motion.db'
+    # to avoid sqlite3.OperationalError: # database is locked timeout from 5 seconds to 2 minutes
+    # https://stackoverflow.com/a/3172950/1207193
+    with sqlite3.connect("/home/andre/motion.db", timeout=2*60) as con: #'/mnt/motion/motion.db'
         now_utc = int(time.time())# it is UTC by default
         cameras = dict(zip(('front-up', 'front-left', 'left-aisle', 'right-aisle', 'broken-static'), [0]*5))
         for row in con.execute(f"SELECT * FROM events WHERE start > {now_utc-60*60}"): 
