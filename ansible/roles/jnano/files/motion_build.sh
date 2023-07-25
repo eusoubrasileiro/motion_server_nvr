@@ -16,10 +16,14 @@ cd motion-src/ && autoreconf -fiv
 # github issue https://github.com/Motion-Project/motion/issues/1537
 patch -p1 < ../time_t.patch
 
-# in case running again
+# DEBUGGING options
+# export CFLAGS="-g"
+# then run motion from inside gdb
+# gdb motiond -d 8 
+# on the crash use `bt` backtrace
+
 make clean 
-./configure --without-mysql --without-mariadb -without-pgsql --with-ffmpeg=/usr/local  # CFLAGS,LDFLAGS replaced by --with-ffmpeg
-# CFLAGS with -g option is debbuging
+./configure --without-mysql --without-mariadb -without-pgsql --with-ffmpeg=/usr/local  
 make -j$(nproc)
 
 # copy to /usr/local/bin the compiled binary better use motiond to avoid confusion if default apt-get package is installed
