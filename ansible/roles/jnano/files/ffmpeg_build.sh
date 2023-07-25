@@ -4,12 +4,13 @@
 
 # 2.clone ffmpeg and ...
 if [ ! -d "ffmpeg" ]; then
-    git clone git://source.ffmpeg.org/ffmpeg.git -b release/4.2 --depth=1
+    git clone git://source.ffmpeg.org/ffmpeg.git -b release/6.0 --depth=1
 fi 
 
 # ... patch ffmpeg with nvmpi and my RTSP_lower_transport patch
 cd ffmpeg
-git apply ../jetson-ffmpeg/ffmpeg_nvmpi.patch
+wget -O ffmpeg_nvmpi.patch https://github.com/Keylost/jetson-ffmpeg/raw/master/ffmpeg_patches/ffmpeg6.0_nvmpi.patch
+git apply ffmpeg_nvmpi.patch
 # Add my RTSP patch my Yoose trash cameras
 patch -p1 < ../RTSP_lower_transport_TCP.patch
 
@@ -46,7 +47,7 @@ make -j$(nproc)
 # ldconfig
 
 # testing  hevc_nvmpi decoder 
-# ffmpeg -v quiet -stats -rtsp_transport tcp -y -c:v  hevc_nvmpi -i rtsp://user:pass@ipcam-kitchen:554/onvif2 -f null -
+# ffmpeg -v quiet -stats -rtsp_transport tcp -y -c:v  hevc_nvmpi -i rtsp://admin:passwd@ipcam_front_left:554/onvif2 -f null -
 # Working perfectly after install. To show only progress use -v quiet -stats
 # less image smearing/tearing errors etc..  it seams
  

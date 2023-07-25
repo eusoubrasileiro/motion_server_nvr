@@ -1,9 +1,9 @@
 diff --git a/src/util.c b/src/util.c
-index 6ed7534..72c1ce2 100644
+index 90e81d0..69b4b86 100644
 --- a/src/util.c
 +++ b/src/util.c
-@@ -402,6 +402,14 @@ static void mystrftime_long (const struct context *cnt, int width, const char *w
-         sprintf(out, "%*s", width, VERSION);
+@@ -400,6 +400,14 @@ static void mystrftime_long (const struct context *cnt, int width, const char *w
+         sprintf(out, "%*s", width,  cnt->eventid);
          return;
      }
 +    if (SPECIFIERWORD("eventtime")) {

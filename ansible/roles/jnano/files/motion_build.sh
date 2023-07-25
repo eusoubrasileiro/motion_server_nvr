@@ -1,7 +1,8 @@
 #!/bin/bash
 
+# git clone https://github.com/Motion-Project/motion.git -b 4.5 --depth=1
 if [ ! -f "motion-src.zip" ]; then # only if not downloaded yet
-    wget -O motion-src.zip https://github.com/Motion-Project/motion/archive/2829dc766e404bdb24d0435111b4b00c343ab5ee.zip
+    wget -O motion-src.zip https://github.com/Motion-Project/motion/archive/refs/tags/release-4.5.1.zip
 fi
 if [ ! -d "motion-src" ]; then # only if not unziped yet
     unzip motion-src.zip
@@ -24,3 +25,5 @@ make -j$(nproc)
 # copy to /usr/local/bin the compiled binary better use motiond to avoid confusion if default apt-get package is installed
 # cp src/motion  /usr/local/bin/motiond
 # chmod a+x /usr/local/bin/motiond
+
+
