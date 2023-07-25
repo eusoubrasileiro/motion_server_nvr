@@ -14,6 +14,9 @@ git apply ffmpeg_nvmpi.patch
 # Add my RTSP patch my Yoose trash cameras
 patch -p1 < ../RTSP_lower_transport_TCP.patch
 
+# SHINOBI change IF... one day maybe
+# Need to change this to enable filters for Shinobi 
+# if considering using it really
 
 #  compiling jetson nano 
 ./configure --enable-nvmpi \
