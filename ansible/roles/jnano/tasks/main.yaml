@@ -1,17 +1,28 @@
 ---
 
-- name: Packages + FFMPEG build and install
-  include_tasks: ffmpeg_motion.yml
+# first thing FIRST
+- name: Set DNS server for systemd-resolved
+  ansible.builtin.lineinfile:
+    path: /etc/systemd/resolved.conf
+    regexp: '^#DNS='
+    line: DNS=192.168.0.1
+  become: true
   tags:
-    - always
+    - config
 
-- name: SQLITE3 config
-  include_tasks: sql3.yml
+- name: Apply systemd-resolved dns settings above
+  shell: |
+    rm /etc/resolv.conf
+    ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
+    systemctl restart systemd-resolved.service
+  become: true
   tags:
-    - sql3
+    - config
 
-# per ansible repository issue: must include allways tags on include_tasks
-# https://github.com/ansible/ansible/issues/41540#issuecomment-397341326
+#sudo rm /etc/resolv.conf
+#sudo ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
+# sudo dpkg-reconfigure resolvconf
+# and restart sudo systemctl restart systemd-resolved.service
 
 - name: Update network conf
   template:
@@ -30,7 +41,57 @@
   become: true
   tags:
     - config
-    - netplan
+    - netplan  
+
+- name: Update apt packages
+  apt:
+    update_cache: true
+  become: true
+  tags:
+    - apt
+
+- name: Packages + FFMPEG build and install
+  include_tasks: ffmpeg_motion.yml
+  tags:
+    - always
+
+- name: SQLITE3 config
+  include_tasks: sql3.yml
+  tags:
+    - sql3
+
+# must ssh-keygen and ssh-copy -i on andre@orangepi before this
+- name: Jetson nano fstab to mount ssh shared folder
+  ansible.builtin.lineinfile:
+    path: /etc/fstab
+    line: orangepi:/mnt/motion               /mnt/motion      nfs defaults,_netdev 0 0
+    create: yes
+
+# per ansible repository issue: must include allways tags on include_tasks
+# https://github.com/ansible/ansible/issues/41540#issuecomment-397341326
+
+- name: Install nginx .conf
+  template:
+    src: "etc/nginx/sites-enabled/{{ item }}"
+    dest: /etc/nginx/sites-enabled/
+    owner: andre
+    group: andre
+    mode: 0640
+  loop:
+    - motion_files.conf
+  become: true
+  tags:
+    - config
+    - install
+
+- name: Remove default nginx
+  shell: |
+    if [ ! -f "/etc/nginx/sites-enabled/default" ]; then
+      rm /etc/nginx/sites-enabled/default
+    fi
+  become: true
+  tags:
+    - nginx
 
 - name: Install motion's and ro-overlay services
   template:
@@ -43,28 +104,6 @@
     - ro_overlay.service
   tags:
     - install
-
-- name: Install rsyslog configuration
-  template:
-    src: "etc/{{ item }}"
-    dest: /etc/
-  become: true
-  loop:
-    - rsyslog.conf
-  tags:
-    - install
-    - rsyslog
-
-- name: Install rsyslog configuration
-  template:
-    src: "etc/{{ item }}"
-    dest: /etc/rsyslog.d/
-  become: true
-  loop:
-    - rsyslog.d/50-default.conf
-  tags:
-    - install
-    - rsyslog
 
 - name: Install systemd-python package to e-mail journalctl error logs
   ansible.builtin.pip:
@@ -109,3 +148,6 @@
   become: true
   tags:
     - enable
+    - never 
+
+
