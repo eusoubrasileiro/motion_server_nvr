@@ -2,7 +2,7 @@
 import sqlite3
 import os
 
-dbpath = "{{ motion_storage_dir }}/{{ motion_dbfile }}"
+dbpath = "/home/andre/motion.db"
 if os.path.exists(dbpath):
     os.remove(dbpath)
 

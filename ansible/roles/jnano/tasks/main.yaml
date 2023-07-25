@@ -1,47 +1,47 @@
 ---
 
 # first thing FIRST
-- name: Set DNS server for systemd-resolved
-  ansible.builtin.lineinfile:
-    path: /etc/systemd/resolved.conf
-    regexp: '^#DNS='
-    line: DNS=192.168.0.1
-  become: true
-  tags:
-    - config
+# - name: Set DNS server for systemd-resolved
+#   ansible.builtin.lineinfile:
+#     path: /etc/systemd/resolved.conf
+#     regexp: '^#DNS='
+#     line: DNS=192.168.0.1
+#   become: true
+#   tags:
+#     - config
 
-- name: Apply systemd-resolved dns settings above
-  shell: |
-    rm /etc/resolv.conf
-    ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
-    systemctl restart systemd-resolved.service
-  become: true
-  tags:
-    - config
+# - name: Apply systemd-resolved dns settings above
+#   shell: |
+#     rm /etc/resolv.conf
+#     ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
+#     systemctl restart systemd-resolved.service
+#   become: true
+#   tags:
+#     - config
 
 #sudo rm /etc/resolv.conf
 #sudo ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
 # sudo dpkg-reconfigure resolvconf
 # and restart sudo systemctl restart systemd-resolved.service
 
-- name: Update network conf
-  template:
-    src: etc/netplan/netcfg.yaml
-    dest: /etc/netplan/netcfg.yaml
-    owner: root
-    group: root
-    mode: 0644
-  become: true
-  tags:
-    - config
+# - name: Update network conf
+#   template:
+#     src: etc/netplan/netcfg.yaml
+#     dest: /etc/netplan/netcfg.yaml
+#     owner: root
+#     group: root
+#     mode: 0644
+#   become: true
+#   tags:
+#     - config
 
-- name: Apply netplan
-  command: netplan apply
-  async: 45
-  become: true
-  tags:
-    - config
-    - netplan  
+# - name: Apply netplan
+#   command: netplan apply
+#   async: 45
+#   become: true
+#   tags:
+#     - config
+#     - netplan  
 
 - name: Update apt packages
   apt:
@@ -121,7 +121,6 @@
     - motion
     - motion_helper
     - nginx
-    - rsyslog
   become: true
   tags:
     - enable
