@@ -5,7 +5,7 @@ After=network.service motion.service
 Wants=network-online.target
 
 [Service]
-User=andre
+User=ubuntu
 Group=www-data
 Restart=always
 ExecStart=/usr/bin/motion_helper.py -d {{ motion_storage_dir }} -m {{ motion_storage_size }}

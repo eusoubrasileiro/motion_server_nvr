@@ -1,6 +1,8 @@
 #!/bin/bash
 
-# clone ffmpeg and ... for mppa media process plataform
+# 1. rkmpp_decoder_install.sh
+
+# 2.clone ffmpeg and ... for mppa media process plataform
 if [ ! -d "ffmpeg" ]; then
     git clone https://github.com/hbiyik/FFmpeg -b mppa-rga-ffmpeg-6 --depth=1
 fi 

@@ -1,7 +1,0 @@
-# if using original image from nvidia from now on
-# remove GUI 
-# sudo systemctl stop gdm3
-# sudo systemctl disable gdm3
-# sudo systemctl set-default multi-user.target
-# sudo apt remove --purge ubuntu-desktop gdm3
-# https://lunar.computer/posts/nvidia-jetson-nano-headless/

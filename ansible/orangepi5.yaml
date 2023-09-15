@@ -1,5 +1,5 @@
 ---
 - name: Install Motion NVR Server
-  hosts: jnano
+  hosts: orangepi5
   roles:
-    - jnano
+    - orangepi5

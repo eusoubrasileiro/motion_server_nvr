@@ -1,5 +1,5 @@
 ---
-build_folder: /home/andre
+build_folder: /home/ubuntu
 motion_storage_size: 350
 motion_storage_dir: /mnt/motion
 motion_build_folder: motion-src

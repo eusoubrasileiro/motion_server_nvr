@@ -2,7 +2,7 @@
 import sqlite3
 import os
 
-dbpath = "/home/andre/motion.db"
+dbpath = "/home/ubuntu/motion.db"
 if os.path.exists(dbpath):
     os.remove(dbpath)
 
@@ -30,9 +30,9 @@ c.execute("CREATE TABLE events ("
 conn.commit()
 
 # # modifying existing table, getting data and creating table again
-# # cnx = sqlite3.connect('/media/andre/Data/Downloads/motion.db')
+# # cnx = sqlite3.connect('/media/ubuntu/Data/Downloads/motion.db')
 # # df = pd.read_sql_query("SELECT * FROM events", cnx)
-# cnx1 = sqlite3.connect('/media/andre/Data/Downloads/motion1.db')
+# cnx1 = sqlite3.connect('/media/ubuntu/Data/Downloads/motion1.db')
 # c = cnx1.cursor()
 # c.execute("CREATE TABLE events ("
 # "row_id INTEGER PRIMARY KEY AUTOINCREMENT, " # id row unique
