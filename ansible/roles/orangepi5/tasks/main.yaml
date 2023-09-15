@@ -1,5 +1,9 @@
 ---
 
+# - name: Set hostname
+#   ansible.builtin.hostname:
+#     name: orangepi5
+
 # first thing FIRST
 - name: Set DNS server for systemd-resolved
   ansible.builtin.lineinfile:
@@ -60,11 +64,22 @@
   tags:
     - sql3
 
-- name: fstab to mount nfs shared folder
-  ansible.builtin.lineinfile:
-    path: /etc/fstab
-    line: orangepizero2:/mnt/motion               /mnt/motion      nfs auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0
-    create: yes
+# - name: fstab to mount nfs shared folder
+#   ansible.builtin.lineinfile:
+#     path: /etc/fstab
+#     line: orangepizero2:/mnt/motion               /mnt/motion      nfs auto,nofail,noatime,nolock,intr,tcp,actimeo=1800 0 0
+#     create: yes
+#   become: true
+#   tags:
+#     - config
+
+- name: Mount an nfs shared folder
+  ansible.posix.mount:
+    src: orangepizero2:/mnt/motion
+    path: /mnt/motion
+    opts: auto,nofail,noatime,nolock,intr,tcp,actimeo=1800
+    state: mounted
+    fstype: nfs
 
 # per ansible repository issue: must include allways tags on include_tasks
 # https://github.com/ansible/ansible/issues/41540#issuecomment-397341326
@@ -74,7 +89,7 @@
     src: "etc/nginx/sites-enabled/{{ item }}"
     dest: /etc/nginx/sites-enabled/
     owner: ubuntu
-    group: andre
+    group: ubuntu
     mode: 0640
   loop:
     - motion_files.conf

@@ -78,7 +78,7 @@
 
 - name: Install ffmpeg library
   shell: |
-    cd "{{ build_folder }}/ffmpeg"
+    cd "{{ build_folder }}/FFmpeg"
     make install
     ldconfig
   become: true
@@ -105,7 +105,7 @@
     dest: /usr/bin/motion_helper.py
     owner: ubuntu
     group: ubuntu
-    mode: 0755
+    mode: 777
   become: true
   ignore_errors: yes
   tags:

@@ -3,10 +3,11 @@
 # 1. rkmpp_decoder_install.sh
 
 # 2.clone ffmpeg and ... for mppa media process plataform
-if [ ! -d "ffmpeg" ]; then
-    git clone https://github.com/hbiyik/FFmpeg -b mppa-rga-ffmpeg-6 --depth=1
+if [ ! -d "FFmpeg" ]; then
+    git clone https://github.com/hbiyik/FFmpeg -b mpp-rga-ffmpeg-6 --depth=1
 fi 
 
+cd FFmpeg
 # Add my RTSP patch my Yoose trash cameras
 git apply --stat ../RTSP_lower_transport_TCP.patch
 
@@ -15,9 +16,8 @@ git apply --stat ../RTSP_lower_transport_TCP.patch
 # if considering using it really
 
 #  compiling orangepi 5 
-./configure \ 
---disable-ffprobe --disable-ffplay --disable-outdevs \ 
---disable-indevs --disable-devices --disable-filters \ 
+./configure --disable-ffprobe --disable-ffplay --disable-outdevs \
+--disable-indevs --disable-devices --disable-filters \
 --enable-shared --prefix=/usr/local --enable-rkmpp --enable-version3 --enable-libdrm
 
 # debbuging version
