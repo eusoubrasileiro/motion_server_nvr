@@ -14,7 +14,7 @@ cd motion-src/ && autoreconf -fiv
 
 # apply my event_id patch - otherwise sql_query still doesn't work alone is not capable
 # github issue https://github.com/Motion-Project/motion/issues/1537
-git apply --stat ../time_t.patch
+patch -p1 < ../time_t.patch
 
 # DEBUGGING options
 # export CFLAGS="-g"

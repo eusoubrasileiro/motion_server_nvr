@@ -47,6 +47,13 @@
 #     - config
 #     - netplan  
 
+- name: Set timezone 
+  community.general.timezone:
+    name: America/Sao_Paulo
+  become: true
+  tags:
+    - config
+
 - name: Update apt packages
   apt:
     update_cache: true
