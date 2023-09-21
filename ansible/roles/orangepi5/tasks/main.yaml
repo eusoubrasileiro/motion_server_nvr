@@ -95,8 +95,8 @@
   template:
     src: "etc/nginx/sites-enabled/{{ item }}"
     dest: /etc/nginx/sites-enabled/
-    owner: ubuntu
-    group: ubuntu
+    owner: andre
+    group: andre
     mode: 0640
   loop:
     - motion_files.conf

@@ -103,8 +103,8 @@
   template:
     src: usr/bin/motion_helper.py
     dest: /usr/bin/motion_helper.py
-    owner: ubuntu
-    group: ubuntu
+    owner: andre
+    group: andre
     mode: 777
   become: true
   ignore_errors: yes
@@ -115,8 +115,8 @@
   template:
     src: "usr/local/etc/motion/{{ item }}"
     dest: /usr/local/etc/motion/
-    owner: ubuntu
-    group: ubuntu
+    owner: andre
+    group: andre
     mode: 0640
   loop:
     - motion.conf    

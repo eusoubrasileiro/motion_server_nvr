@@ -4,7 +4,7 @@ After=network.service
 Wants=network-online.target
 
 [Service]
-User=ubuntu
+User=andre
 Group=www-data
 Restart=always
 WorkingDirectory=/usr/local/etc/motion
