@@ -38,7 +38,11 @@
     - libyuv-dev
     - librga2
     - librga-dev 
+    - libdrm-dev
     - librockchip-mpp-dev 
+    - libv4l-dev
+    - v4l2loopback-utils
+    - v4l2loopback-dkms
   become: true
   tags:
     - apt
@@ -131,3 +135,4 @@
   tags:
     - config
     - install
+    - motion
