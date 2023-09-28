@@ -1,51 +1,6 @@
 ---
 
-- name: Install packages
-  apt:
-    name: "{{ item }}"
-    state: present
-  loop:
-    - tzdata
-    - curl
-    - htop
-    - git
-    - tmux
-    - lsof
-    - python3
-    - python3-numpy
-    - nginx
-    - nginx-extras
-    # motion required
-    - autoconf
-    - automake
-    - autopoint
-    - build-essential
-    - pkg-config
-    - libtool
-    - libzip-dev
-    - libjpeg-dev
-    - libwebp-dev
-    - libsqlite3-dev
-    - gettext
-    - libmicrohttpd-dev
-    - unzip
-    # systemd.journal python package
-    - libsystemd-dev
-    - python3-pip
-    # nfs mount shared from orangepizero2
-    - nfs-common
-    # ffmpeg rkmpp hardware decoder
-    - libyuv-dev
-    - librga2
-    - librga-dev 
-    - libdrm-dev
-    - librockchip-mpp-dev 
-    - libv4l-dev
-    - v4l2loopback-utils
-    - v4l2loopback-dkms
-  become: true
-  tags:
-    - apt
+
 
 # from armibian page - Enable 3D Acceleration (Ubuntu variant only)
 # not sure need these repositories

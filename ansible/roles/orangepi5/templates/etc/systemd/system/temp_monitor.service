@@ -1,0 +1,13 @@
+[Unit]
+Description=Temperature Monitor Service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5
+User=andre
+ExecStart=/usr/bin/python3 /home/andre/temper/temp_monitor.py
+
+[Install]
+WantedBy=multi-user.target

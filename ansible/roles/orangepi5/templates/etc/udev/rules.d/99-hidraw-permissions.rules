@@ -1,0 +1,6 @@
+# copy this to /etc/udev/rules.d/99-hidraw-permissions.rules
+# then 
+# sudo udevadm control --reload-rules
+# sudo service udev restart
+# or ignore above steps and just reboot
+KERNEL=="hidraw*", MODE="0666"

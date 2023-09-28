@@ -7,7 +7,12 @@
   tags:
     - apt
 
-- name: Packages + FFMPEG build and install
+- name: Packages
+  include_tasks: packages.yml
+  tags:
+    - always
+
+- name: FFMPEG build and install
   include_tasks: ffmpeg_motion.yml
   tags:
     - always
