@@ -111,10 +111,12 @@ def recover_space():
     """Run cleanning motion folders files reclaiming space used (older files first)
     Takes almost forever to compute disk usage size better run on another thread.
     """ 
+    split_char=';;'
+    print_format = f'%T@{split_char}%p{split_char}%s\n'
     def array_files(storage_path):
-        result = subprocess.run(r"find " + storage_path + r" -type f -printf '%T@;;%p;;%s\n'", 
+        result = subprocess.run(r"find " + storage_path + f" -type f -printf '{print_format}'", 
             stdout=subprocess.PIPE, shell=True, universal_newlines=True)        
-        data = np.loadtxt(io.StringIO(result.stdout), dtype=[('age', '<f8'),('path', 'U200'), ('size', 'i8')], delimiter=';;')
+        data = np.loadtxt(io.StringIO(result.stdout.replace(split_char, ';')), dtype=[('age', '<f8'),('path', 'U200'), ('size', 'i8')], delimiter=';')
         data.sort(order='age') # big numbers last means younger files last
         data = data[::-1] #  (reverse it)
         return data 
