@@ -8,17 +8,17 @@
     - apt
 
 - name: Packages
-  include_tasks: packages.yml
+  include_tasks: packages.yaml
   tags:
     - always
 
 - name: FFMPEG build and install
-  include_tasks: ffmpeg_motion.yml
+  include_tasks: ffmpeg_motion.yaml
   tags:
     - always
 
 - name: SQLITE3 config
-  include_tasks: sql3.yml
+  include_tasks: sql3.yaml
   tags:
     - sql3
 
@@ -90,10 +90,6 @@
     - ro_overlay.service
   tags:
     - install
-
-- name: Install systemd-python package to e-mail journalctl error logs
-  ansible.builtin.pip:
-    name: systemd-python
 
 - name: Enable and services
   systemd:

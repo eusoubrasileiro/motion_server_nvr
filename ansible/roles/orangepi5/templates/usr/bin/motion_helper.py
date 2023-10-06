@@ -22,7 +22,7 @@ config = {
     'data_size' : 90.,
     'gmail_user' : 'eusoubrasileiro@gmail.com',
     'gmail_to' : 'aflopes7@gmail.com',
-    'gmail_app_password' : {{ gmail_app_password | password_hash('sha512') }},
+    'gmail_app_password' : {{ gmail_app_password }} ,
 }
 
 def background_task(interval_secs=15*60):
