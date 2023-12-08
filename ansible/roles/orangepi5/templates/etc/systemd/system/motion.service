@@ -1,11 +1,13 @@
 [Unit]
 Description = Motion Network Video Recorder Server 
 After=network.service
-Wants=network-online.target
+Requires=network-online.target
+Requires=mnt-motion.mount 
+RequiresMountsFor=/mnt/motion
 
 [Service]
 User=andre
-Group=www-data
+Group=andre
 Restart=always
 WorkingDirectory=/usr/local/etc/motion
 ExecStart=/usr/local/bin/motiond -n 

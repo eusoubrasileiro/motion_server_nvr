@@ -6,7 +6,7 @@ Wants=network-online.target
 
 [Service]
 User=andre
-Group=www-data
+Group=andre
 Restart=always
 ExecStart=/usr/bin/motion_helper.py -d {{ motion_storage_dir }} -m {{ motion_storage_size }}
 RestartSec=900
